@@ -28,3 +28,9 @@ Sistema web desenvolvido em **Django** para gerenciar médicos, pacientes e cons
 1. Clone o repositório:
 ```bash
 git clone https://github.com/samuel-morais/sistema_agendamento.git
+
+2. Instalações Pacotes:
+```bash
+pip install -r requirements.txt
+
+
