@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Excluir Consulta{% endblock %}
+{% block content %}
+<div class="card p-4">
+  <h1>Excluir Consulta</h1>
+  <p>Tem certeza que deseja excluir a consulta de <strong>{{ consulta.paciente.nome }}</strong> com <strong>{{ consulta.medico.user.get_full_name }}</strong> em <strong>{{ consulta.data_hora|date:"d/m/Y H:i" }}</strong>?</p>
+  <form method="post">{% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sim, excluir</button>
+    <a href="{% url 'listar_consultas' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}
