@@ -32,7 +32,7 @@
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="{% url 'pagina_inicial' %}">
       <img src="{% static 'images/logo.png' %}" alt="Logo" class="navbar-logo">
-      <span class="fw-bold">Sistema de Agendamento</span>
+      <span class="fw-bold">Sistema de Agendamento de Consultas</span>
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
       <span class="navbar-toggler-icon"></span>
@@ -42,6 +42,7 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'listar_consultas' %}">Consultas</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'listar_pacientes' %}">Pacientes</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'listar_medicos' %}">Médicos</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'listar_especialidades' %}">Especialidades</a></li>
         <li class="nav-item"><a class="nav-link text-warning" href="{% url 'logout' %}">Sair</a></li>
       </ul>
     </div>

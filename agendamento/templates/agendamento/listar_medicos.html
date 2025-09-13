@@ -20,7 +20,7 @@
   <tbody>
     {% for medico in medicos %}
       <tr>
-        <td>{{ medico.nome }}</td>
+        <td>{{ medico.user.get_full_name }}</td>
         <td>{{ medico.crm }}</td>
         <td>{{ medico.especialidade.nome }}</td>
         <td class="text-end">

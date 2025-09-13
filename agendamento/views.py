@@ -1,17 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Consulta, Paciente, Medico
+from .models import Consulta, Paciente, Medico, Especialidade
 from .forms import ConsultaForm, PacienteForm, MedicoForm
+from django import forms
 
 @login_required
 def pagina_inicial(request):
     total_consultas = Consulta.objects.count()
     total_pacientes = Paciente.objects.count()
     total_medicos = Medico.objects.count()
+    total_especialidades = Especialidade.objects.count()
     return render(request, 'agendamento/pagina_inicial.html', {
         'total_consultas': total_consultas,
         'total_pacientes': total_pacientes,
         'total_medicos': total_medicos,
+        'total_especialidades': total_especialidades,
     })
 
 # CRUD Consultas
@@ -36,7 +39,7 @@ def editar_consulta(request, pk):
     if request.method == 'POST' and form.is_valid():
         form.save()
         return redirect('listar_consultas')
-    return render(request, 'agendamento/consulta_form.html', {'form': form, 'titulo': 'Editar Consulta'})
+    return render(request, 'agendamento/consultas_form.html', {'form': form, 'titulo': 'Editar Consulta'})
 
 @login_required
 def excluir_consulta(request, pk):
@@ -107,3 +110,45 @@ def excluir_medico(request, pk):
         medico.delete()
         return redirect('listar_medicos')
     return render(request, 'agendamento/medico_confirm_delete.html', {'medico': medico})
+
+
+
+# Formulário Especialidade
+class EspecialidadeForm(forms.ModelForm):
+    class Meta:
+        model = Especialidade
+        fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+# CRUD Especialidades
+@login_required
+def listar_especialidades(request):
+    especialidades = Especialidade.objects.all().order_by('nome')
+    return render(request, 'agendamento/listar_especialidades.html', {'especialidades': especialidades})
+
+@login_required
+def criar_especialidade(request):
+    form = EspecialidadeForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('listar_especialidades')
+    return render(request, 'agendamento/especialidade_form.html', {'form': form, 'titulo': 'Nova Especialidade'})
+
+@login_required
+def editar_especialidade(request, pk):
+    especialidade = get_object_or_404(Especialidade, pk=pk)
+    form = EspecialidadeForm(request.POST or None, instance=especialidade)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('listar_especialidades')
+    return render(request, 'agendamento/especialidade_form.html', {'form': form, 'titulo': 'Editar Especialidade'})
+
+@login_required
+def excluir_especialidade(request, pk):
+    especialidade = get_object_or_404(Especialidade, pk=pk)
+    if request.method == 'POST':
+        especialidade.delete()
+        return redirect('listar_especialidades')
+    return render(request, 'agendamento/especialidade_confirm_delete.html', {'especialidade': especialidade})

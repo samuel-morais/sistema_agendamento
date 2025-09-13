@@ -7,7 +7,7 @@
 <div class="row g-4">
 
   <!-- Card Consultas -->
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="card text-white bg-primary h-100 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Consultas</h5>
@@ -18,7 +18,7 @@
   </div>
 
   <!-- Card Pacientes -->
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="card text-white bg-success h-100 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Pacientes</h5>
@@ -29,12 +29,23 @@
   </div>
 
   <!-- Card Médicos -->
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="card text-white bg-info h-100 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Médicos</h5>
         <p class="card-text display-6">{{ total_medicos }}</p>
         <a href="{% url 'listar_medicos' %}" class="btn btn-light btn-sm">Ver Médicos</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Especialidades -->
+  <div class="col-md-3">
+    <div class="card text-white bg-warning h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Especialidades</h5>
+        <p class="card-text display-6">{{ total_especialidades }}</p>
+        <a href="{% url 'listar_especialidades' %}" class="btn btn-light btn-sm">Ver Especialidades</a>
       </div>
     </div>
   </div>

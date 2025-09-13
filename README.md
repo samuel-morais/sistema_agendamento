@@ -34,4 +34,6 @@ git clone https://github.com/samuel-morais/sistema_agendamento.git
 ```bash
 pip install -r requirements.txt
 
+```
+
 
