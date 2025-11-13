@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Lista de Médicos{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary"><i class="bi bi-person-heart me-2"></i> Médicos</h2>
+    <a href="{% url 'criar_medico' %}" class="btn btn-primary fw-semibold shadow-sm">
+      <i class="bi bi-plus-circle me-1"></i> Novo Médico
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Nome</th>
+            <th>CRM</th>
+            <th>Especialidade</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for medico in medicos %}
+          <tr>
+            <td>{{ medico.user.get_full_name }}</td>
+            <td>{{ medico.crm }}</td>
+            <td>{{ medico.especialidade.nome|default:"—" }}</td>
+            <td class="text-end">
+              <a href="{% url 'editar_medico' medico.id %}" class="btn btn-sm btn-warning me-1">
+                <i class="bi bi-pencil-square"></i> Editar
+              </a>
+              <a href="{% url 'excluir_medico' medico.id %}" class="btn btn-sm btn-danger">
+                <i class="bi bi-trash3"></i> Excluir
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted">Nenhum médico cadastrado.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+.table-dark th {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.table-hover tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.08);
+}
+</style>
+{% endblock %}

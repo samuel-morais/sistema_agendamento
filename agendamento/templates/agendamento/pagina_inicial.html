@@ -2,53 +2,386 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Bem-vindo(a), {{ user.get_full_name|default:user.username }}!</h1>
 
-<div class="row g-4">
+<div class="text-center mb-5">
+  <h1 class="fw-bold display-5 mb-1" style="color:var(--primary)">
+    {{ user.get_full_name|default:user.username }}
+  </h1>
+  <p class="text-muted fs-6">Painel de Controle do Sistema de Agendamento</p>
+</div>
 
-  <!-- Card Consultas -->
-  <div class="col-md-3">
-    <div class="card text-white bg-primary h-100 shadow-sm">
+
+
+<!-- CARDS-->
+<div class="row g-4 justify-content-center">
+
+  {% if user.is_superuser or user.is_staff %}
+    <!-- CONSULTAS -->
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="dashboard-card bg-gradient-primary text-center">
+        <i class="bi bi-calendar-check display-6 mb-2"></i>
+        <h6 class="mb-1">Consultas</h6>
+        <div class="fw-bold display-6">{{ total_consultas }}</div>
+        <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
+          Ver Consultas
+        </a>
+      </div>
+    </div>
+
+    <!-- PACIENTES -->
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="dashboard-card bg-gradient-success text-center">
+        <i class="bi bi-person-heart display-6 mb-2"></i>
+        <h6 class="mb-1">Pacientes</h6>
+        <div class="fw-bold display-6">{{ total_pacientes }}</div>
+        <a href="{% url 'listar_pacientes' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
+          Ver Pacientes
+        </a>
+      </div>
+    </div>
+
+    <!-- MÉDICOS -->
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="dashboard-card bg-gradient-info text-center">
+        <i class="bi bi-person-badge display-6 mb-2"></i>
+        <h6 class="mb-1">Médicos</h6>
+        <div class="fw-bold display-6">{{ total_medicos }}</div>
+        <a href="{% url 'listar_medicos' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
+          Ver Médicos
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+
+
+  {% if is_medico_user %}
+    <!-- MINHAS CONSULTAS -->
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="dashboard-card bg-gradient-primary text-center">
+        <i class="bi bi-calendar2-week display-6 mb-2"></i>
+        <h6 class="mb-1">Minhas Consultas</h6>
+        <div class="fw-bold display-6">{{ total_consultas }}</div>
+        <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
+          Ver Consultas
+        </a>
+      </div>
+    </div>
+
+    <!-- PRONTUÁRIOS -->
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="dashboard-card bg-gradient-secondary text-center">
+        <i class="bi bi-journal-medical display-6 mb-2"></i>
+        <h6 class="mb-1">Prontuários</h6>
+        <div class="fw-bold display-6">{{ total_prontuarios }}</div>
+        <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
+          Ver Prontuários
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+
+
+  {% if is_usuario_padrao %}
+    <!-- AGENDAR -->
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="dashboard-card bg-gradient-primary text-center pulse-card">
+        <i class="bi bi-calendar-heart display-6 mb-2"></i>
+        <h6 class="mb-1">Agendar Consulta</h6>
+        <div class="fw-bold display-6">{{ total_consultas }}</div>
+        <a href="{% url 'criar_consulta' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
+          Nova Consulta
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+
+
+
+<!-- CONSULTAS AGENDADAS-->
+{% if is_medico_user or user.is_staff or user.is_superuser %}
+<div class="card shadow-sm mt-5 border-0 rounded-4">
+  <div class="card-header bg-primary text-white rounded-top-4 d-flex justify-content-between align-items-center">
+    <div><i class="bi bi-clipboard2-pulse me-2"></i> Consultas Agendadas</div>
+    <small class="text-white-50">Consultas para aprovação</small>
+  </div>
+
+  <div class="card-body">
+
+    {% if consultas %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle text-center">
+        <thead class="table-light">
+          <tr>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Convênio</th>
+            <th>Data</th>
+            <th>Horário</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        {% for c in consultas %}
+          <tr>
+            <td class="fw-semibold">{{ c.paciente.nome }}</td>
+            <td>{{ c.medico.user.get_full_name }}</td>
+
+            <!-- CONVÊNIO -->
+            <td>
+              {% if c.usa_convenio and c.convenio %}
+                <span class="badge bg-success">✔ {{ c.convenio.nome }}</span>
+              {% else %}
+                <span class="badge bg-secondary">Não</span>
+              {% endif %}
+            </td>
+
+            <td>{{ c.data_hora|date:"d/m/Y" }}</td>
+            <td>{{ c.data_hora|time:"H:i" }}</td>
+
+            <td>
+              {% if c.status == 'agendada' %}
+                <span class="badge bg-warning text-dark">Agendada</span>
+              {% elif c.status == 'confirmada' %}
+                <span class="badge bg-success">Confirmada</span>
+              {% elif c.status == 'cancelada' %}
+                <span class="badge bg-danger">Cancelada</span>
+              {% else %}
+                <span class="badge bg-secondary">Indefinido</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="d-flex justify-content-center gap-2">
+
+                {% if is_medico_user and c.medico.user == user %}
+                  
+                  {% if c.status == 'agendada' %}
+                    <!-- Aprovar -->
+                    <form method="post" action="{% url 'confirmar_consulta' c.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-check2"></i>
+                      </button>
+                    </form>
+
+                    <!-- Cancelar -->
+                    <form method="post" action="{% url 'cancelar_consulta' c.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                    </form>
+
+                  {% elif c.status == 'confirmada' %}
+                    <!-- PRONTUÁRIO -->
+                    <a href="{% url 'listar_prontuarios' %}?paciente={{ c.paciente.id }}"
+                       class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-journal-medical me-1"></i> Prontuário
+                    </a>
+                  {% endif %}
+
+                {% elif user.is_staff or user.is_superuser %}
+                  
+                  {% if c.status == 'agendada' %}
+                    <form method="post" action="{% url 'confirmar_consulta' c.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-check2"></i>
+                      </button>
+                    </form>
+
+                    <form method="post" action="{% url 'cancelar_consulta' c.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                    </form>
+
+                  {% elif c.status == 'confirmada' %}
+                    <a href="{% url 'listar_prontuarios' %}?paciente={{ c.paciente.id }}"
+                       class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-journal-medical me-1"></i> Prontuário
+                    </a>
+                  {% endif %}
+                
+                {% else %}
+                  <span class="text-muted small">Sem permissão</span>
+                {% endif %}
+
+              </div>
+            </td>
+
+          </tr>
+        {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+
+    {% else %}
+    <div class="text-center text-muted py-4">
+      <i class="bi bi-calendar2-x display-5 d-block mb-3"></i>
+      <h5>Nenhuma consulta encontrada.</h5>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
+
+
+
+
+
+<!-- GRUPOS (Pendentes / Confirmadas / Canceladas)-->
+{% if user.is_staff or user.is_superuser %}
+<div class="row mt-5 g-4">
+
+  <!-- PENDENTES -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-header bg-warning text-dark fw-semibold">Pendentes</div>
       <div class="card-body">
-        <h5 class="card-title">Consultas</h5>
-        <p class="card-text display-6">{{ total_consultas }}</p>
-        <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm">Ver Consultas</a>
+
+        {% if consultas_pendentes %}
+          <ul class="list-group list-group-flush">
+            {% for c in consultas_pendentes %}
+              <li class="list-group-item d-flex justify-content-between">
+                <div>
+                  <strong>{{ c.paciente.nome }}</strong><br>
+                  <small class="text-muted">
+                    {{ c.medico.user.get_full_name }} — {{ c.data_hora|date:"d/m/Y H:i" }}
+                    {% if c.usa_convenio %}
+                      <br><span class="text-success">Convênio: {{ c.convenio.nome }}</span>
+                    {% endif %}
+                  </small>
+                </div>
+                <div>
+                  <form method="post" class="d-inline" action="{% url 'confirmar_consulta' c.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button>
+                  </form>
+
+                  <form method="post" class="d-inline" action="{% url 'cancelar_consulta' c.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                  </form>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted small">Nenhuma consulta pendente.</p>
+        {% endif %}
+
       </div>
     </div>
   </div>
 
-  <!-- Card Pacientes -->
-  <div class="col-md-3">
-    <div class="card text-white bg-success h-100 shadow-sm">
+  <!-- CONFIRMADAS -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-header bg-success text-white fw-semibold">Confirmadas</div>
       <div class="card-body">
-        <h5 class="card-title">Pacientes</h5>
-        <p class="card-text display-6">{{ total_pacientes }}</p>
-        <a href="{% url 'listar_pacientes' %}" class="btn btn-light btn-sm">Ver Pacientes</a>
+
+        {% if consultas_confirmadas %}
+          <ul class="list-group list-group-flush">
+            {% for c in consultas_confirmadas %}
+              <li class="list-group-item">
+                <strong>{{ c.paciente.nome }}</strong><br>
+                <small class="text-muted">
+                  {{ c.medico.user.get_full_name }} — {{ c.data_hora|date:"d/m/Y H:i" }}
+                  {% if c.usa_convenio %}
+                    <br><span class="text-success">Convênio: {{ c.convenio.nome }}</span>
+                  {% endif %}
+                </small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted small">Nenhuma consulta confirmada.</p>
+        {% endif %}
+
       </div>
     </div>
   </div>
 
-  <!-- Card Médicos -->
-  <div class="col-md-3">
-    <div class="card text-white bg-info h-100 shadow-sm">
+  <!-- CANCELADAS -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-header bg-danger text-white fw-semibold">Canceladas</div>
       <div class="card-body">
-        <h5 class="card-title">Médicos</h5>
-        <p class="card-text display-6">{{ total_medicos }}</p>
-        <a href="{% url 'listar_medicos' %}" class="btn btn-light btn-sm">Ver Médicos</a>
-      </div>
-    </div>
-  </div>
 
-  <!-- Card Especialidades -->
-  <div class="col-md-3">
-    <div class="card text-white bg-warning h-100 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Especialidades</h5>
-        <p class="card-text display-6">{{ total_especialidades }}</p>
-        <a href="{% url 'listar_especialidades' %}" class="btn btn-light btn-sm">Ver Especialidades</a>
+        {% if consultas_canceladas %}
+          <ul class="list-group list-group-flush">
+            {% for c in consultas_canceladas %}
+              <li class="list-group-item">
+                <strong>{{ c.paciente.nome }}</strong><br>
+                <small class="text-muted">
+                  {{ c.medico.user.get_full_name }} — {{ c.data_hora|date:"d/m/Y H:i" }}
+                  {% if c.usa_convenio %}
+                    <br><span class="text-success">Convênio: {{ c.convenio.nome }}</span>
+                  {% endif %}
+                </small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted small">Nenhuma consulta cancelada.</p>
+        {% endif %}
+
       </div>
     </div>
   </div>
 
 </div>
+{% endif %}
+
+
+
+
+
+
+<!-- NOTIFICAÇÕES-->
+{% if notificacoes %}
+<div class="card shadow-sm mt-5 border-0 rounded-4">
+  <div class="card-header bg-primary text-white fw-semibold">
+    <i class="bi bi-bell me-2"></i> Últimas Notificações
+  </div>
+
+  <ul class="list-group list-group-flush">
+    {% for n in notificacoes %}
+      <li class="list-group-item d-flex justify-content-between {% if not n.lida %}fw-bold bg-light{% endif %}">
+        <div>
+          <div><i class="bi bi-dot text-primary"></i> {{ n.titulo }}</div>
+          <div class="text-muted small">{{ n.mensagem }}</div>
+        </div>
+        <small class="text-secondary">{{ n.criado_em|date:"d/m/Y H:i" }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+
+
+
+<style>
+.pulse-card {
+  animation: pulse 2.5s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow:0 0 0 0 rgba(13,110,253,.25); }
+  70% { box-shadow:0 0 0 15px rgba(13,110,253,0); }
+  100% { box-shadow:0 0 0 0 rgba(13,110,253,0); }
+}
+</style>
+
 {% endblock %}

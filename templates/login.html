@@ -13,13 +13,13 @@
   }
 
   body {
-    background: linear-gradient(135deg,#4e54c8,#8f94fb);
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
   }
 
   .login-page {
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     height: 100vh;
     padding: 1rem;
   }
@@ -52,26 +52,21 @@
     60% { transform: translateY(-5px); }
   }
 
-  .login-card h3 {
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    letter-spacing: 0.5px;
+  .input-group.valid { border: 2px solid #28a745; }
+  .input-group.invalid { border: 2px solid #dc3545; }
+
+  .error-msg {
+    color: #dc3545;
+    font-size: .85rem;
+    margin-top: 4px;
+    text-align: left;
   }
 
-  .input-group-text {
-    background-color: #f1f1f1;
-    border: none;
-    transition: background 0.3s;
-  }
-
-  .form-control {
-    transition: border 0.3s, box-shadow 0.3s;
-  }
-
-  .form-control:focus {
-    border-color: #4e54c8;
-    box-shadow: 0 0 0 0.2rem rgba(78,84,200,0.25);
+  .success-msg {
+    color: #28a745;
+    font-size: .85rem;
+    margin-top: 4px;
+    text-align: left;
   }
 
   .btn-primary {
@@ -82,79 +77,137 @@
     transition: all 0.3s;
   }
 
+  .btn-primary.loading {
+    opacity: .8;
+    pointer-events: none;
+  }
+
   .btn-primary:hover {
     background: #8f94fb;
     transform: translateY(-2px);
   }
 
-  .alert {
-    font-size: 0.9rem;
-    animation: fadeIn 0.5s ease;
+  .show-password {
+    cursor: pointer;
+    color: #4e54c8;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .text-muted {
-    color: #999 !important;
-  }
-
-  /* Responsividade */
-  @media (max-width: 480px) {
-    .login-card {
-      padding: 2rem 1.5rem;
-    }
-  }
 </style>
 
 <div class="login-page">
   <div class="login-card">
+
     <div class="login-logo">
       <img src="{% static 'images/logo.png' %}" alt="Logo">
     </div>
 
     <h3>🔐 Acessar o Sistema</h3>
 
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% if form.non_field_errors %}
-        <div class="alert alert-danger">
-          {% for err in form.non_field_errors %}{{ err }}{% endfor %}
-        </div>
-      {% endif %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
+    <form method="post" id="loginForm" novalidate>
+      {% csrf_token %}
+
+      <!-- Usuário -->
       <div class="mb-3 text-start">
         <label for="id_username" class="form-label">Usuário</label>
-        <div class="input-group">
+        <div class="input-group" id="group-username">
           <span class="input-group-text">👤</span>
-          <input type="text" name="username" id="id_username" class="form-control" value="{{ request.POST.username|default:'' }}" required autofocus>
+          <input type="text" name="username" id="id_username" class="form-control" required autofocus>
         </div>
-        {% if form.username.errors %}
-          <div class="text-danger small mt-1">{% for e in form.username.errors %}{{ e }}{% endfor %}</div>
-        {% endif %}
+        <div id="username-msg"></div>
       </div>
 
+      <!-- Senha -->
       <div class="mb-3 text-start">
         <label for="id_password" class="form-label">Senha</label>
-        <div class="input-group">
+        <div class="input-group" id="group-password">
           <span class="input-group-text">🔑</span>
           <input type="password" name="password" id="id_password" class="form-control" required>
+          <span class="input-group-text show-password" id="togglePass">👁</span>
         </div>
-        {% if form.password.errors %}
-          <div class="text-danger small mt-1">{% for e in form.password.errors %}{{ e }}{% endfor %}</div>
-        {% endif %}
+        <div id="password-msg"></div>
       </div>
 
-      {% if next %}
-        <input type="hidden" name="next" value="{{ next }}">
-      {% endif %}
+      <button type="submit" class="btn btn-primary w-100" id="btnLogin">
+        <span id="btnText">Entrar</span>
+        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none"></span>
+      </button>
 
-      <button type="submit" class="btn btn-primary w-100">Entrar</button>
+      <p class="text-center mt-3">
+        <a href="{% url 'cadastrar_usuario' %}" class="text-decoration-none">Criar uma conta</a>
+      </p>
+
     </form>
 
     <p class="text-muted small mt-3 mb-0">© {{ now|date:"Y" }} Sistema de Agendamento</p>
   </div>
 </div>
+
+<script>
+/* Mostrar / Ocultar Senha */
+document.getElementById("togglePass").addEventListener("click", function () {
+  const field = document.getElementById("id_password");
+  field.type = field.type === "password" ? "text" : "password";
+});
+
+/* Validação Username (AJAX) */
+document.getElementById("id_username").addEventListener("blur", function () {
+  const user = this.value.trim();
+  const group = document.getElementById("group-username");
+  const msg = document.getElementById("username-msg");
+
+  if (!user) {
+    group.classList.add("invalid");
+    msg.innerHTML = `<div class="error-msg">Informe o usuário.</div>`;
+    return;
+  }
+
+  fetch("/validar/username/?u=" + user)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.exists) {
+        group.classList.add("invalid");
+        group.classList.remove("valid");
+        msg.innerHTML = `<div class="error-msg">Usuário não encontrado.</div>`;
+      } else {
+        group.classList.remove("invalid");
+        group.classList.add("valid");
+        msg.innerHTML = `<div class="success-msg">Usuário encontrado.</div>`;
+      }
+    });
+});
+
+/* Validação simples de senha */
+document.getElementById("id_password").addEventListener("input", function () {
+  const val = this.value.trim();
+  const group = document.getElementById("group-password");
+  const msg = document.getElementById("password-msg");
+
+  if (val.length < 3) {
+    group.classList.add("invalid");
+    msg.innerHTML = `<div class="error-msg">Senha muito curta.</div>`;
+  } else {
+    group.classList.remove("invalid");
+    group.classList.add("valid");
+    msg.innerHTML = ``;
+  }
+});
+
+/* Loader ao enviar form */
+document.getElementById("loginForm").addEventListener("submit", function () {
+  const btn = document.getElementById("btnLogin");
+  const text = document.getElementById("btnText");
+  const spin = document.getElementById("btnSpinner");
+
+  btn.classList.add("loading");
+  text.innerHTML = "Entrando...";
+  spin.classList.remove("d-none");
+});
+</script>
+
 {% endblock %}

@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card shadow-lg border-0 rounded-4" id="cardConsulta">
+        <div class="card-header text-white rounded-top-4" style="background: linear-gradient(90deg, #0d6efd, #00b4d8);">
+          <h3 class="mb-0 fw-semibold">
+            <i class="bi bi-calendar2-check me-2"></i>{{ titulo }}
+          </h3>
+        </div>
+
+        <div class="card-body p-4">
+
+          <div class="alert alert-info py-2 mb-4">
+            <strong>Paciente:</strong> {{ request.user.get_full_name|default:request.user.username }} (você)
+          </div>
+
+          <!-- Mensagens de Erro -->
+          <div id="mensagem-erro" class="alert alert-danger d-none mb-4"></div>
+
+          <form method="post" id="consultaForm" novalidate>
+            {% csrf_token %}
+
+            <!-- Especialidade -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-hospital"></i> Especialidade
+              </label>
+              <select id="especialidadeSelect" name="especialidade" class="form-select">
+                <option value="">Selecione uma especialidade</option>
+                {% for esp in especialidades %}
+                  <option value="{{ esp.id }}">{{ esp.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Médico -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-person-badge"></i> Médico
+              </label>
+              {{ form.medico }}
+            </div>
+
+            <!-- Checkbox convênio -->
+            <div class="mb-3 form-check">
+              <input class="form-check-input" type="checkbox" id="usa_convenio" name="usa_convenio" />
+              <label class="form-check-label" for="usa_convenio">
+                <i class="bi bi-card-checklist me-1"></i> Consulta por convênio?
+              </label>
+            </div>
+
+            <!-- Select convênio -->
+            <div class="mb-3" id="wrapper_convenio" style="display:none;">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-list-check"></i> Selecione o convênio
+              </label>
+              <select id="select_convenio" name="convenio" class="form-select">
+                <option value="">Selecione o convênio</option>
+                {% for c in convenios %}
+                  <option value="{{ c.id }}">{{ c.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Data -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold mb-2">
+                <i class="bi bi-calendar-week"></i> Escolha o dia
+              </label>
+
+              <div class="position-relative date-wrapper">
+                <i class="bi bi-calendar4-week date-icon"></i>
+                <input
+                  type="date"
+                  id="data-futura"
+                  name="data"
+                  class="form-control date-input blocked-date"
+                  readOnly
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Horários -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-clock-history"></i> Escolha o horário
+              </label>
+
+              <div
+                id="grade-horarios"
+                class="d-grid"
+                style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px;"
+              >
+                <span class="text-muted small">Selecione o médico e o dia.</span>
+              </div>
+
+              <input type="hidden" name="hora" id="id_hora">
+              <input type="hidden" name="data_hora" id="id_data_hora">
+              <input type="hidden" name="duracao_minutos" value="30">
+              <input type="hidden" name="status" value="agendada">
+              <input type="hidden" name="confirmada" value="True">
+            </div>
+
+            <!-- Observações -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-pencil-square"></i> Observações
+              </label>
+              {{ form.observacoes }}
+            </div>
+
+            <!-- Resumo -->
+            <div
+              id="resumo-consulta"
+              class="alert alert-light border rounded-3 mt-4 p-3"
+              style="display:none;"
+            >
+              <h6 class="fw-semibold mb-2">
+                <i class="bi bi-clipboard2-check"></i> Resumo da Consulta
+              </h6>
+              <ul class="list-unstyled mb-0">
+                <li><strong>Médico:</strong> <span id="resumo-medico"></span></li>
+                <li><strong>Especialidade:</strong> <span id="resumo-especialidade"></span></li>
+                <li><strong>Data:</strong> <span id="resumo-data"></span></li>
+                <li><strong>Horário:</strong> <span id="resumo-hora"></span></li>
+                <li id="resumo-convenio-line" style="display:none;"><strong>Convênio:</strong> <span id="resumo-convenio"></span></li>
+              </ul>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <a href="{% url 'listar_consultas' %}" class="btn btn-outline-secondary fw-semibold">
+                <i class="bi bi-arrow-left"></i> Voltar
+              </a>
+
+              <button type="submit" class="btn btn-success fw-semibold" id="btnConfirmar" disabled>
+                <span id="btn-texto">
+                  <i class="bi bi-check2-circle me-1"></i> Confirmar Consulta
+                </span>
+                <span id="btn-spinner" class="spinner-border spinner-border-sm d-none"></span>
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Sucesso -->
+<div class="modal fade" id="modalSucesso" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg text-center p-4">
+      <div class="text-success mb-3">
+        <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+      </div>
+      <h5 class="fw-semibold">Consulta agendada com sucesso!</h5>
+      <div id="modalResumo" class="my-3 small text-muted"></div>
+      <div class="progress mt-3" style="height: 8px;">
+        <div id="progressBar" class="progress-bar bg-success" style="width: 0%;"></div>
+      </div>
+      <small class="text-muted">Redirecionando...</small>
+    </div>
+  </div>
+</div>
+
+
+<style>
+.container { max-width: 1000px; }
+.card { border-radius: 1rem; border: none; }
+.form-label { color: #0a4275; font-weight: 600; }
+.form-control, .form-select { border-radius: .5rem; }
+
+/* Campo de Data Premium */
+.date-wrapper { position: relative; width: 220px; }
+.date-input {
+  width: 100%;
+  padding-left: 42px;
+  border: 2px solid #dce6f5;
+  border-radius: .6rem;
+  height: 46px;
+  font-weight: 500;
+  color: #0a4275;
+  transition: .2s ease;
+}
+.date-input.blocked-date {
+  background: #f1f5fb !important;
+  color: #9bb1cc !important;
+  cursor: not-allowed !important;
+}
+.date-icon {
+  position: absolute; top: 50%; left: 12px;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #0a4275;
+}
+
+/* Botões de Horário */
+.btn-horario {
+  background-color: #0d6efd;
+  color: white;
+  font-weight: 600;
+  padding: .6rem;
+  border-radius: .5rem;
+  border: none;
+  transition: .2s ease;
+}
+.btn-horario.active {
+  background-color: #198754 !important;
+}
+.btn-horario[disabled] {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+/* Campo inválido */
+.is-invalid {
+  border: 2px solid #dc3545 !important;
+  background: #fff5f5 !important;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.shake { animation: shake .45s ease; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const especialidadeSelect = document.getElementById("especialidadeSelect");
+  const medicoSelect = document.getElementById("id_medico");
+  const dataInput = document.getElementById("data-futura");
+  const grade = document.getElementById("grade-horarios");
+  const resumoBox = document.getElementById("resumo-consulta");
+  const resumoMedico = document.getElementById("resumo-medico");
+  const resumoEsp = document.getElementById("resumo-especialidade");
+  const resumoData = document.getElementById("resumo-data");
+  const resumoHora = document.getElementById("resumo-hora");
+  const resumoConvenioLine = document.getElementById("resumo-convenio-line");
+  const resumoConvenio = document.getElementById("resumo-convenio");
+  const btnConfirmar = document.getElementById("btnConfirmar");
+  const inputHora = document.getElementById("id_hora");
+  const inputDataHora = document.getElementById("id_data_hora");
+  const modal = new bootstrap.Modal(document.getElementById("modalSucesso"));
+  const progressBar = document.getElementById("progressBar");
+  const modalResumo = document.getElementById("modalResumo");
+  const mensagemErro = document.getElementById("mensagem-erro");
+  const card = document.getElementById("cardConsulta");
+
+  const usaConvenioCheckbox = document.getElementById("usa_convenio");
+  const wrapperConvenio = document.getElementById("wrapper_convenio");
+  const selectConvenio = document.getElementById("select_convenio");
+
+  const hoje = new Date().toISOString().split("T")[0];
+  dataInput.min = hoje;
+
+  medicoSelect.disabled = true;
+  btnConfirmar.disabled = true;
+
+  usaConvenioCheckbox.addEventListener("change", () => {
+    if (usaConvenioCheckbox.checked) {
+      wrapperConvenio.style.display = "block";
+      selectConvenio.required = true;
+    } else {
+      wrapperConvenio.style.display = "none";
+      selectConvenio.required = false;
+      selectConvenio.value = "";
+      resumoConvenioLine.style.display = "none";
+    }
+    limparErrosCampos();
+  });
+
+  [especialidadeSelect, medicoSelect, dataInput, selectConvenio].forEach(el => {
+    el.addEventListener('change', limparErrosCampos);
+  });
+
+  especialidadeSelect.addEventListener("change", () => {
+
+    limparErrosCampos();
+
+    const espId = especialidadeSelect.value;
+
+    medicoSelect.innerHTML = '<option value="">Carregando médicos...</option>';
+    medicoSelect.disabled = true;
+
+    dataInput.readOnly = true;
+    dataInput.classList.add("blocked-date");
+
+    btnConfirmar.disabled = true;
+    resumoBox.style.display = "none";
+    grade.innerHTML = '<span class="text-muted small">Selecione o médico e o dia.</span>';
+
+    if (!espId) return;
+
+    fetch(`/consultas/medicos_por_especialidade/?especialidade_id=${espId}`)
+      .then(r => r.json())
+      .then(res => {
+
+        medicoSelect.innerHTML = '<option value="">Selecione um médico</option>';
+
+        if (res.medicos.length === 0) {
+          medicoSelect.innerHTML = '<option value="">Nenhum médico encontrado</option>';
+          return;
+        }
+
+        res.medicos.forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          opt.textContent = `${m.nome} — ${m.especialidade}`;
+          medicoSelect.appendChild(opt);
+        });
+
+        medicoSelect.disabled = false;
+      });
+
+  });
+
+  medicoSelect.addEventListener("change", () => {
+
+    limparErrosCampos();
+
+    if (medicoSelect.value) {
+      dataInput.readOnly = false;
+      dataInput.classList.remove("blocked-date");
+    } else {
+      dataInput.readOnly = true;
+      dataInput.classList.add("blocked-date");
+    }
+
+    grade.innerHTML = '<span class="text-muted small">Selecione uma data.</span>';
+    resumoBox.style.display = "none";
+  });
+
+  dataInput.addEventListener("change", () => {
+
+    limparErrosCampos();
+
+    const data = dataInput.value;
+    const medico = medicoSelect.value;
+
+    if (!data || !medico) return;
+
+    grade.innerHTML = '<span class="text-muted small">Carregando horários...</span>';
+
+    fetch(`/consultas/horarios_disponiveis/?medico_id=${medico}&data=${data}`)
+      .then(r => r.json())
+      .then(res => {
+
+        grade.innerHTML = '';
+
+        const horarios = [
+          "08:00","08:30","09:00","09:30",
+          "10:00","10:30","11:00","11:30",
+          "12:00","12:30","13:00","13:30",
+          "14:00","14:30","15:00","15:30",
+          "16:00","16:30"
+        ];
+
+        horarios.forEach(hora => {
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = hora;
+          btn.className = "btn btn-horario";
+
+          if (!res.horarios.includes(hora)) {
+            btn.disabled = true;
+            btn.title = "Horário indisponível";
+          }
+
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".btn-horario").forEach(b => b.classList.remove("active"));
+
+            btn.classList.add("active");
+
+            inputHora.value = hora;
+            inputDataHora.value = `${data} ${hora}`;
+
+            btnConfirmar.disabled = false;
+
+            resumoMedico.textContent = medicoSelect.options[medicoSelect.selectedIndex].text;
+            resumoEsp.textContent = especialidadeSelect.options[especialidadeSelect.selectedIndex].text;
+            resumoData.textContent = new Date(data).toLocaleDateString('pt-BR');
+            resumoHora.textContent = hora;
+
+            if (usaConvenioCheckbox.checked && selectConvenio.value) {
+              resumoConvenio.textContent = selectConvenio.options[selectConvenio.selectedIndex].text;
+              resumoConvenioLine.style.display = "list-item";
+            } else {
+              resumoConvenioLine.style.display = "none";
+            }
+
+            resumoBox.style.display = "block";
+          });
+
+          grade.appendChild(btn);
+
+        });
+
+      });
+
+  });
+
+  const form = document.getElementById("consultaForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    limparErrosCampos();
+
+    const btnSpinner = document.getElementById("btn-spinner");
+    const btnTexto = document.getElementById("btn-texto");
+    btnSpinner.classList.remove("d-none");
+    btnTexto.innerHTML = "Agendando...";
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch("", {
+        method: "POST",
+        body: formData,
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+
+      const data = await res.json();
+
+      btnSpinner.classList.add("d-none");
+      btnTexto.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Confirmar Consulta';
+
+      if (data.ok) {
+
+        modalResumo.innerHTML = `
+          <strong>${data.consulta.medico}</strong><br>
+          ${data.consulta.data} às ${data.consulta.hora}<br>
+          Paciente: ${data.consulta.paciente}
+          ${data.consulta.convenio ? `<br>Convênio: ${data.consulta.convenio}` : ''}
+        `;
+
+        modal.show();
+
+        let p = 0;
+        const timer = setInterval(() => {
+          p += 4;
+          progressBar.style.width = p + "%";
+          if (p >= 100) {
+            clearInterval(timer);
+            window.location.href = "{% url 'listar_consultas' %}";
+          }
+        }, 90);
+
+      } else {
+        exibirErros(data.errors);
+      }
+
+    } catch (error) {
+      exibirErroServidor();
+      console.error(error);
+    }
+
+  });
+
+});
+
+
+
+/* EXIBE ERROS */
+
+function exibirErros(errors) {
+
+  const mensagemErro = document.getElementById("mensagem-erro");
+  const card = document.getElementById("cardConsulta");
+
+  let html = "";
+
+  Object.keys(errors).forEach(campo => {
+    const mensagens = errors[campo];
+
+    const input = document.querySelector(`[name="${campo}"]`);
+    if (input) input.classList.add("is-invalid");
+
+    mensagens.forEach(msg => {
+      html += `
+        <div class="d-flex mb-1">
+          <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>
+          <span><strong>${formatarCampo(campo)}:</strong> ${msg}</span>
+        </div>
+      `;
+    });
+  });
+
+  mensagemErro.innerHTML = html;
+  mensagemErro.classList.remove("d-none");
+
+  card.classList.add("shake");
+  setTimeout(() => card.classList.remove("shake"), 500);
+}
+
+
+function limparErrosCampos() {
+  document.getElementById("mensagem-erro").classList.add("d-none");
+  document.getElementById("mensagem-erro").innerHTML = "";
+  document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+}
+
+function exibirErroServidor() {
+  const msg = document.getElementById("mensagem-erro");
+  msg.innerHTML = `
+    <div class="d-flex">
+      <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+      <span>Erro ao conectar com o servidor.</span>
+    </div>
+  `;
+  msg.classList.remove("d-none");
+
+  const card = document.getElementById("cardConsulta");
+  card.classList.add("shake");
+  setTimeout(() => card.classList.remove("shake"), 500);
+}
+
+function formatarCampo(campo) {
+  const mapa = {
+    medico: "Médico",
+    data: "Data",
+    hora: "Horário",
+    observacoes: "Observações",
+    convenio: "Convênio",
+    usa_convenio: "Convênio",
+    data_hora: "Data e Horário",
+    __all__: "Erro"
+  };
+  return mapa[campo] || campo;
+}
+</script>
+
+{% endblock %}

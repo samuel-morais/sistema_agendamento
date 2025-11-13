@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Consultas{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+  <!-- Título e botão -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary">
+      <i class="bi bi-calendar2-heart me-2"></i> Consultas
+    </h2>
+
+    <a href="{% url 'criar_consulta' %}" class="btn btn-primary fw-semibold shadow-sm">
+      <i class="bi bi-plus-lg me-1"></i> Nova Consulta
+    </a>
+  </div>
+
+  <!-- Alerts -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-info-circle me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Card -->
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-4">
+
+      {% if consultas %}
+        <div class="table-responsive">
+          <table class="table align-middle table-hover text-center">
+            <thead class="table-primary text-white">
+              <tr>
+                <th><i class="bi bi-person-fill"></i> Paciente</th>
+                <th><i class="bi bi-person-badge"></i> Médico</th>
+                <th><i class="bi bi-hospital"></i> Especialidade</th>
+                <th><i class="bi bi-credit-card-2-front"></i> Convênio</th>
+                <th><i class="bi bi-calendar3"></i> Data e Hora</th>
+                <th><i class="bi bi-hourglass-split"></i> Duração</th>
+                <th><i class="bi bi-info-circle"></i> Status</th>
+                <th class="text-end"><i class="bi bi-gear"></i> Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for consulta in consultas %}
+              <tr>
+
+                <!-- Paciente -->
+                <td class="fw-semibold text-start ps-3">
+                  {{ consulta.paciente.nome }}
+                </td>
+
+                <!-- Médico -->
+                <td>{{ consulta.medico.user.get_full_name }}</td>
+
+                <!-- Especialidade -->
+                <td>
+                  <span class="badge bg-info text-dark px-3 py-2">
+                    {{ consulta.medico.especialidade.nome }}
+                  </span>
+                </td>
+
+                <!-- Convênio -->
+                <td>
+                  {% if consulta.usa_convenio %}
+                    <span class="badge bg-success px-3 py-2">
+                      ✔ {{ consulta.convenio.nome }}
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary px-3 py-2">
+                      Não
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- Data -->
+                <td>{{ consulta.data_hora|date:"d/m/Y H:i" }}</td>
+
+                <!-- Duração -->
+                <td>{{ consulta.duracao_minutos }} min</td>
+
+                <!-- Status -->
+                <td>
+                  {% if consulta.status == 'realizada' %}
+                    <span class="badge bg-success px-3 py-2">
+                      <i class="bi bi-check2-circle me-1"></i> Realizada
+                    </span>
+
+                  {% elif consulta.status == 'cancelada' %}
+                    <span class="badge bg-danger px-3 py-2">
+                      <i class="bi bi-x-circle me-1"></i> Cancelada
+                    </span>
+
+                  {% else %}
+                    <span class="badge bg-warning text-dark px-3 py-2">
+                      <i class="bi bi-clock-history me-1"></i> Agendada
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- Ações -->
+                <td class="text-end pe-3">
+                  <div class="btn-group">
+
+                    <!-- Editar -->
+                    <a href="{% url 'editar_consulta' consulta.id %}"
+                       class="btn btn-sm btn-outline-warning">
+                      <i class="bi bi-pencil-square"></i>
+                    </a>
+
+                    <!-- Excluir -->
+                    <a href="{% url 'excluir_consulta' consulta.id %}"
+                       class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash3"></i>
+                    </a>
+
+                    {% if consulta.status == 'agendada' %}
+                      <!-- Cancelar -->
+                      <a href="{% url 'cancelar_consulta' consulta.id %}"
+                         class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-slash-circle"></i>
+                      </a>
+                    {% endif %}
+
+                  </div>
+                </td>
+
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
+          <h5>Nenhuma consulta encontrada</h5>
+          <p class="small">Você ainda não possui consultas cadastradas.</p>
+          <a href="{% url 'criar_consulta' %}" class="btn btn-primary mt-3">
+            <i class="bi bi-plus-lg me-1"></i> Criar nova consulta
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<!-- Estilos -->
+<style>
+.table-primary {
+  background: linear-gradient(90deg, #0d6efd, #2563eb);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.08);
+}
+
+.badge {
+  font-size: 0.85rem;
+}
+</style>
+
+{% endblock %}

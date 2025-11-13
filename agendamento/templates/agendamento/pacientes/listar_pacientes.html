@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Pacientes{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary"><i class="bi bi-people-fill me-2"></i>Pacientes</h2>
+    {% if user.is_staff or user.is_superuser %}
+      <a href="{% url 'criar_paciente' %}" class="btn btn-primary shadow-sm fw-semibold">
+        <i class="bi bi-person-plus-fill me-1"></i> Novo Paciente
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Telefone</th>
+            <th>Email</th>
+            {% if user.is_staff or user.is_superuser %}<th class="text-end">Ações</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pacientes %}
+          <tr>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.cpf }}</td>
+            <td>{{ p.telefone|default:"-" }}</td>
+            <td>{{ p.email|default:"-" }}</td>
+            {% if user.is_staff or user.is_superuser %}
+            <td class="text-end">
+              <a href="{% url 'editar_paciente' p.pk %}" class="btn btn-sm btn-warning fw-semibold me-1">✏️ Editar</a>
+              <a href="{% url 'excluir_paciente' p.pk %}" class="btn btn-sm btn-danger fw-semibold">🗑️ Excluir</a>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-3">Nenhum paciente cadastrado.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

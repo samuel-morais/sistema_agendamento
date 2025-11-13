@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Especialidades{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary"><i class="bi bi-bookmarks me-2"></i> Especialidades</h2>
+    <a href="{% url 'criar_especialidade' %}" class="btn btn-primary fw-semibold shadow-sm">
+      <i class="bi bi-plus-lg me-1"></i> Nova Especialidade
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Nome</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for especialidade in especialidades %}
+          <tr>
+            <td>{{ especialidade.nome }}</td>
+            <td class="text-end">
+              <a href="{% url 'editar_especialidade' especialidade.id %}" class="btn btn-sm btn-warning me-2">✏️ Editar</a>
+              <a href="{% url 'excluir_especialidade' especialidade.id %}" class="btn btn-sm btn-danger">🗑️ Excluir</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="text-center text-muted py-3">
+              Nenhuma especialidade cadastrada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+.table-dark th {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.table-hover tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.08);
+}
+</style>
+{% endblock %}
