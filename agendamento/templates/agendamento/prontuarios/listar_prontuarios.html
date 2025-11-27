@@ -2,74 +2,148 @@
 {% block title %}Prontuários{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-primary">
-      <i class="bi bi-journal-medical me-2"></i> Prontuários
-    </h2>
-    <div>
-      <a href="{% url 'criar_prontuario' %}" class="btn btn-primary fw-semibold shadow-sm me-2">
-        <i class="bi bi-file-earmark-plus me-1"></i> Novo Prontuário
-      </a>
-      <a href="{% url 'upload_exame' %}" class="btn btn-outline-secondary fw-semibold shadow-sm">
-        <i class="bi bi-upload me-1"></i> Upload de Exame
-      </a>
-    </div>
-  </div>
-
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-body p-4">
-      <table class="table table-hover align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th>ID</th>
-            <th>Paciente</th>
-            <th>Criado</th>
-            <th>Atualizado</th>
-            <th class="text-end">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in prontuarios %}
-          <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.paciente.nome }}</td>
-            <td>{{ p.criado_em|date:"d/m/Y H:i" }}</td>
-            <td>{{ p.atualizado_em|date:"d/m/Y H:i" }}</td>
-            <td class="text-end">
-              <a href="{% url 'editar_prontuario' p.id %}" class="btn btn-sm btn-warning me-1">
-                <i class="bi bi-pencil-square"></i> Editar
-              </a>
-              <a href="{% url 'excluir_prontuario' p.id %}" class="btn btn-sm btn-danger">
-                <i class="bi bi-trash3"></i> Excluir
-              </a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="5" class="text-center text-muted">Nenhum prontuário encontrado.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
 <style>
-.table-dark th {
-  background-color: #0d6efd;
-  color: white;
-}
-.table-hover tbody tr:hover {
-  background-color: rgba(13, 110, 253, 0.08);
-}
+  .prontuario-row {
+    transition: 0.2s ease;
+  }
+  .prontuario-row:hover {
+    background: #f8faff;
+  }
+  .prontuario-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .small-muted {
+    font-size: .85rem;
+    color: #6c757d;
+  }
+  .btn-open {
+    border-radius: 12px;
+    padding: 6px 14px;
+  }
 </style>
+
+<div class="container my-5">
+
+  <!-- CABEÇALHO -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">
+      <i class="bi bi-journal-medical me-2"></i>
+      Prontuários
+      {% if patient %} — {{ patient.nome }}{% endif %}
+    </h3>
+
+    {% if patient %}
+    <a href="{% url 'criar_prontuario' patient.pk %}" class="btn btn-primary shadow-sm">
+      <i class="bi bi-plus-circle me-1"></i> Novo Prontuário
+    </a>
+    {% endif %}
+  </div>
+
+
+  <!-- LISTAGEM -->
+  <div class="card shadow-sm border-0 rounded-4 mx-auto" style="max-width: 900px;">
+    <div class="card-body">
+
+      {% if prontuarios %}
+      <ul class="list-group list-group-flush">
+
+        {% for p in prontuarios %}
+        <li class="list-group-item prontuario-row d-flex justify-content-between align-items-center py-3">
+
+          <!-- INFO PRINCIPAL -->
+          <div>
+            <div class="prontuario-title">Prontuário #{{ p.pk }}</div>
+
+            <div class="small-muted">
+              Criado em {{ p.criado_em|date:"d/m/Y H:i" }}
+            </div>
+
+            {% if not patient %}
+            <div class="small-muted">
+              Paciente: <strong>{{ p.paciente.nome }}</strong>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- BOTÕES -->
+          <div class="d-flex gap-2">
+
+            <!-- ABRIR -->
+            <a href="{% url 'prontuario_detalhe' p.pk %}"
+               class="btn btn-outline-primary btn-sm btn-open">
+              <i class="bi bi-folder2-open me-1"></i>Abrir
+            </a>
+
+            <!-- EDITAR -->
+            {% if is_medico_user or user.is_staff or user.is_superuser %}
+            <a href="{% url 'editar_prontuario_completo' p.pk %}" 
+               class="btn btn-warning btn-sm btn-open">
+              <i class="bi bi-pencil-square me-1"></i>Editar
+            </a>
+            {% endif %}
+
+            <!-- EXCLUIR -->
+            {% if is_medico_user or user.is_staff or user.is_superuser %}
+            <button class="btn btn-danger btn-sm btn-open"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalExcluir{{ p.pk }}">
+              <i class="bi bi-trash me-1"></i>Excluir
+            </button>
+            {% endif %}
+
+          </div>
+        </li>
+
+
+        <!-- MODAL DE EXCLUSÃO -->
+        <div class="modal fade" id="modalExcluir{{ p.pk }}" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                  <i class="bi bi-exclamation-triangle me-2"></i> Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+                Tem certeza que deseja excluir o prontuário
+                <strong>#{{ p.pk }}</strong>?  
+                <br>
+                Esta ação <strong>não pode ser desfeita</strong>.
+              </div>
+
+              <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                <form method="post" action="{% url 'excluir_prontuario' p.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Excluir
+                  </button>
+                </form>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+      </ul>
+
+      {% else %}
+      <p class="text-muted text-center py-4">
+        Nenhum prontuário encontrado.
+      </p>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
 {% endblock %}

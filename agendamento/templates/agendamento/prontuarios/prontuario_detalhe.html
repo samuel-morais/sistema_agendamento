@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Prontuário #{{ prontuario.pk }}{% endblock %}
+
+{% block content %}
+
+<style>
+  body { background:#eef1f7; }
+
+  .card-clean {
+    border-radius: 18px;
+    border: none;
+    background: #fff;
+    padding: 32px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.06);
+    margin-bottom: 28px;
+  }
+
+  .profile-header {
+      display: flex;
+      gap: 22px;
+      padding: 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4e73df 0%, #1d4ed8 100%);
+      color: #fff;
+      align-items: center;
+      margin-bottom: 28px;
+      box-shadow: 0 6px 20px rgba(30,58,138,0.25);
+  }
+
+  .patient-photo {
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2f3b52;
+    margin-bottom: 14px;
+    border-left: 4px solid #0d6efd;
+    padding-left: 12px;
+  }
+
+  .file-box {
+    background: #f4f7ff;
+    border-radius: 14px;
+    padding: 22px;
+    border: 1px solid #d8def0;
+    transition: 0.2s;
+  }
+
+  .history-item {
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: #f8faff;
+    border-left: 4px solid #0d6efd;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+  }
+</style>
+
+<div class="container my-5" style="max-width: 980px;">
+
+  <!-- CABEÇALHO DO PACIENTE -->
+  <div class="card-clean mb-4">
+    {% include 'agendamento/componentes/paciente_header.html' with paciente=paciente %}
+  </div>
+
+  <!-- ABAS -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#aba-resumo"><i class="bi bi-journal-text me-1"></i> Resumo Prontuário</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-anexos"><i class="bi bi-paperclip me-1"></i> Documentos</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-exames"><i class="bi bi-file-medical me-1"></i> Exames</button></li>
+
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-historico"><i class="bi bi-clock-history me-1"></i> Consultas</button></li>
+  </ul>
+
+  <div class="tab-content mt-3">
+
+    <!-- 1) RESUMO -->
+    <div class="tab-pane fade show active" id="aba-resumo">
+      <div class="card-clean">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="section-title">Resumo do Atendimento</h4>
+
+          <div class="d-flex gap-2">
+
+            <!-- ABRIR COMPLETO -->
+            <a href="{% url 'prontuario_completo' prontuario.pk %}" class="btn btn-outline-primary">
+              <i class="bi bi-eye"></i> Completo
+            </a>
+
+            <!-- GERAR PDF -->
+            <a href="{% url 'prontuario_pdf' prontuario.pk %}" class="btn btn-outline-danger">
+              <i class="bi bi-filetype-pdf"></i> PDF
+            </a>
+
+            {% if request.user.is_staff or request.user.is_superuser or request.user.perfil_medico %}
+              
+              <!-- ANEXAR EXAME -->
+              <a href="{% url 'anexar_exame' prontuario_id=prontuario.pk %}" class="btn btn-outline-success">
+                <i class="bi bi-file-medical"></i> Anexar Exame
+              </a>
+
+              <!-- NOVO PRONTUÁRIO -->
+              <a href="{% url 'criar_prontuario' paciente.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Prontuário
+              </a>
+
+            {% endif %}
+          </div>
+        </div>
+
+        <p class="mb-3">{{ prontuario.descricao|linebreaks }}</p>
+
+        <hr>
+
+        <p><strong>Queixa Principal:</strong><br>{{ prontuario.queixa|default:"—" }}</p>
+        <p><strong>Diagnóstico:</strong><br>{{ prontuario.diagnostico|default:"—" }}</p>
+        <p><strong>CID:</strong> {{ prontuario.cid|default:"—" }}</p>
+        <p><strong>Medicações:</strong><br>{{ prontuario.medicacao|linebreaks|default:"Nenhuma." }}</p>
+
+        <div class="text-muted mt-3">
+          <small><i class="bi bi-clock-history me-1"></i> Criado em {{ prontuario.criado_em|date:"d/m/Y H:i" }}</small><br>
+          <small><i class="bi bi-pencil me-1"></i> Atualizado em {{ prontuario.atualizado_em|date:"d/m/Y H:i" }}</small>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2) DOCUMENTOS -->
+    <div class="tab-pane fade" id="aba-anexos">
+      <div class="card-clean">
+
+        <h4 class="section-title">Documentos Anexados</h4>
+
+        {% if prontuario.anexo %}
+          <div class="file-box mb-4">
+            {% with ext=prontuario.anexo.url|lower|slice:"-4:" %}
+              {% if ext == ".pdf" %}
+                <iframe src="{{ prontuario.anexo.url }}" style="width:100%;height:520px;border:0;border-radius:10px;"></iframe>
+              {% elif ext == ".jpg" or ext == ".png" or prontuario.anexo.url|lower|slice:"-5:" == ".jpeg" %}
+                <img src="{{ prontuario.anexo.url }}" class="img-fluid rounded shadow">
+              {% else %}
+                <a class="btn btn-primary" href="{{ prontuario.anexo.url }}" download>
+                  <i class="bi bi-download"></i> Baixar arquivo
+                </a>
+              {% endif %}
+            {% endwith %}
+          </div>
+        {% else %}
+          <p class="text-muted">Nenhum documento anexado ao prontuário.</p>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- 3) EXAMES -->
+    <div class="tab-pane fade" id="aba-exames">
+      <div class="card-clean">
+
+        <div class="d-flex justify-content-between">
+          <h4 class="section-title">Exames</h4>
+
+          {% if request.user.is_staff or request.user.is_superuser or request.user.perfil_medico %}
+            <a href="{% url 'anexar_exame' prontuario_id=prontuario.pk %}" class="btn btn-outline-success btn-sm">
+              <i class="bi bi-plus-circle"></i> Adicionar Exame
+            </a>
+          {% endif %}
+        </div>
+
+        {% if exames %}
+          {% for e in exames %}
+            <div class="history-item d-flex justify-content-between align-items-center">
+
+              <div>
+                <strong>{{ e.nome }}</strong><br>
+                <small class="text-muted">{{ e.criado_em|date:"d/m/Y H:i" }}</small>
+              </div>
+
+              <div class="d-flex gap-2">
+                <a href="{{ e.arquivo.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-download"></i>
+                </a>
+
+                {% if request.user.is_staff or request.user.is_superuser or request.user.perfil_medico %}
+                  <a href="{% url 'excluir_exame' e.pk %}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                {% endif %}
+              </div>
+
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-center">Nenhum exame anexado.</p>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- 4) CONSULTAS -->
+    <div class="tab-pane fade" id="aba-historico">
+      <div class="card-clean">
+
+        <h4 class="section-title">Histórico de Consultas</h4>
+
+        {% if consultas %}
+          {% for c in consultas %}
+            <div class="history-item">
+              <strong>{{ c.data_hora|date:"d/m/Y H:i" }}</strong><br>
+              <span class="text-muted">{{ c.medico.user.get_full_name }}</span><br>
+
+              <span class="badge 
+                {% if c.status == 'confirmada' %} bg-success
+                {% elif c.status == 'cancelada' %} bg-danger
+                {% elif c.status == 'agendada' %} bg-warning text-dark
+                {% else %} bg-secondary
+                {% endif %}">
+                {{ c.status|title }}
+              </span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-center">Nenhuma consulta encontrada.</p>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

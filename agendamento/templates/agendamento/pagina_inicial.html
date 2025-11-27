@@ -1,296 +1,313 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
-
 {% block content %}
 
+<!-- TÍTULO -->
 <div class="text-center mb-5">
-  <h1 class="fw-bold display-5 mb-1" style="color:var(--primary)">
-    {{ user.get_full_name|default:user.username }}
+  <h1 class="fw-bold display-5" style="color:var(--accent)">
+    Olá, {{ user.get_full_name|default:user.username }}
   </h1>
-  <p class="text-muted fs-6">Painel de Controle do Sistema de Agendamento</p>
-</div>
-
-
-
-<!-- CARDS-->
-<div class="row g-4 justify-content-center">
-
-  {% if user.is_superuser or user.is_staff %}
-    <!-- CONSULTAS -->
-    <div class="col-lg-3 col-md-4 col-sm-6">
-      <div class="dashboard-card bg-gradient-primary text-center">
-        <i class="bi bi-calendar-check display-6 mb-2"></i>
-        <h6 class="mb-1">Consultas</h6>
-        <div class="fw-bold display-6">{{ total_consultas }}</div>
-        <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
-          Ver Consultas
-        </a>
-      </div>
-    </div>
-
-    <!-- PACIENTES -->
-    <div class="col-lg-3 col-md-4 col-sm-6">
-      <div class="dashboard-card bg-gradient-success text-center">
-        <i class="bi bi-person-heart display-6 mb-2"></i>
-        <h6 class="mb-1">Pacientes</h6>
-        <div class="fw-bold display-6">{{ total_pacientes }}</div>
-        <a href="{% url 'listar_pacientes' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
-          Ver Pacientes
-        </a>
-      </div>
-    </div>
-
-    <!-- MÉDICOS -->
-    <div class="col-lg-3 col-md-4 col-sm-6">
-      <div class="dashboard-card bg-gradient-info text-center">
-        <i class="bi bi-person-badge display-6 mb-2"></i>
-        <h6 class="mb-1">Médicos</h6>
-        <div class="fw-bold display-6">{{ total_medicos }}</div>
-        <a href="{% url 'listar_medicos' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
-          Ver Médicos
-        </a>
-      </div>
-    </div>
-  {% endif %}
-
-
 
   {% if is_medico_user %}
-    <!-- MINHAS CONSULTAS -->
-    <div class="col-lg-3 col-md-4 col-sm-6">
-      <div class="dashboard-card bg-gradient-primary text-center">
-        <i class="bi bi-calendar2-week display-6 mb-2"></i>
-        <h6 class="mb-1">Minhas Consultas</h6>
-        <div class="fw-bold display-6">{{ total_consultas }}</div>
-        <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
-          Ver Consultas
-        </a>
-      </div>
-    </div>
-
-    <!-- PRONTUÁRIOS -->
-    <div class="col-lg-3 col-md-4 col-sm-6">
-      <div class="dashboard-card bg-gradient-secondary text-center">
-        <i class="bi bi-journal-medical display-6 mb-2"></i>
-        <h6 class="mb-1">Prontuários</h6>
-        <div class="fw-bold display-6">{{ total_prontuarios }}</div>
-        <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
-          Ver Prontuários
-        </a>
-      </div>
-    </div>
+      <span class="badge bg-primary px-3 py-2 fs-6">Médico</span>
+  {% elif user.is_staff or user.is_superuser %}
+      <span class="badge bg-danger px-3 py-2 fs-6">Administrador</span>
+  {% else %}
+      <span class="badge bg-success px-3 py-2 fs-6">Paciente</span>
   {% endif %}
 
-
-
-  {% if is_usuario_padrao %}
-    <!-- AGENDAR -->
-    <div class="col-lg-3 col-md-4 col-sm-6">
-      <div class="dashboard-card bg-gradient-primary text-center pulse-card">
-        <i class="bi bi-calendar-heart display-6 mb-2"></i>
-        <h6 class="mb-1">Agendar Consulta</h6>
-        <div class="fw-bold display-6">{{ total_consultas }}</div>
-        <a href="{% url 'criar_consulta' %}" class="btn btn-light btn-sm mt-3 fw-semibold shadow-sm">
-          Nova Consulta
-        </a>
-      </div>
-    </div>
-  {% endif %}
-
+  <p class="text-muted-small mt-2">Painel de Controle do Sistema de Agendamento</p>
 </div>
 
 
+{% if is_usuario_padrao %}
 
+<!-- ================== PACIENTE ================== -->
+<div class="row g-4 justify-content-center">
 
-<!-- CONSULTAS AGENDADAS-->
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-primary text-center h-100 pulse-card">
+      <i class="bi bi-calendar-plus mb-2"></i>
+      <h6>Agendar Consulta</h6>
+      <a href="{% url 'criar_consulta' %}" class="btn btn-light btn-sm mt-3">Novo Agendamento</a>
+      <a href="{% url 'listar_consultas' %}" class="d-block text-white small mt-2">Minhas Consultas</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-secondary text-center h-100">
+      <i class="bi bi-journal-medical mb-2"></i>
+      <h6>Meus Prontuários</h6>
+      <div class="fw-bold display-6">{{ total_prontuarios }}</div>
+      <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3">Ver Prontuários</a>
+    </div>
+  </div>
+
+</div>
+
+{% elif is_medico_user %}
+
+<!-- ================== MÉDICO ================== -->
+<div class="row g-4 justify-content-center">
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-primary text-center h-100">
+      <i class="bi bi-calendar-check mb-2"></i>
+      <h6>Total de Consultas</h6>
+      <div class="fw-bold display-6">{{ total_consultas }}</div>
+      <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3">Ver Consultas</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-info text-center h-100">
+      <i class="bi bi-calendar2-week mb-2"></i>
+      <h6>Minhas Consultas</h6>
+      <div class="fw-bold display-6">{{ consultas.count }}</div>
+      <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3">Acessar</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-success text-center h-100">
+      <i class="bi bi-people-fill mb-2"></i>
+      <h6>Meus Pacientes</h6>
+      <div class="fw-bold display-6">{{ total_pacientes_medico }}</div>
+      <a href="{% url 'listar_pacientes' %}" class="btn btn-light btn-sm mt-3">Ver Pacientes</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-secondary text-center h-100">
+      <i class="bi bi-journal-medical mb-2"></i>
+      <h6>Prontuários</h6>
+      <div class="fw-bold display-6">{{ total_prontuarios }}</div>
+      <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3">Ver Prontuários</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-info text-center h-100">
+      <i class="bi bi-file-medical mb-2"></i>
+      <h6>Exames</h6>
+      <div class="fw-bold display-6">{{ exames.count }}</div>
+      <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3">Ver Exames</a>
+    </div>
+  </div>
+
+</div>
+
+{% elif user.is_staff or user.is_superuser %}
+
+<!-- ================== ADMINISTRADOR ================== -->
+<div class="row g-4 justify-content-center">
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-primary text-center h-100">
+      <i class="bi bi-calendar-check mb-2"></i>
+      <h6>Total de Consultas</h6>
+      <div class="fw-bold display-6">{{ total_consultas }}</div>
+      <a href="{% url 'listar_consultas' %}" class="btn btn-light btn-sm mt-3">Ver Consultas</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-success text-center h-100">
+      <i class="bi bi-person-heart mb-2"></i>
+      <h6>Pacientes</h6>
+      <div class="fw-bold display-6">{{ total_pacientes }}</div>
+      <a href="{% url 'listar_pacientes' %}" class="btn btn-light btn-sm mt-3">Ver Pacientes</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-info text-center h-100">
+      <i class="bi bi-person-badge mb-2"></i>
+      <h6>Médicos</h6>
+      <div class="fw-bold display-6">{{ total_medicos }}</div>
+      <a href="{% url 'listar_medicos' %}" class="btn btn-light btn-sm mt-3">Ver Médicos</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-secondary text-center h-100">
+      <i class="bi bi-clipboard-heart mb-2"></i>
+      <h6>Especialidades</h6>
+      <div class="fw-bold display-6">{{ total_especialidades }}</div>
+      <a href="{% url 'listar_especialidades' %}" class="btn btn-light btn-sm mt-3">Ver Especialidades</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-secondary text-center h-100">
+      <i class="bi bi-journal-medical mb-2"></i>
+      <h6>Prontuários</h6>
+      <div class="fw-bold display-6">{{ total_prontuarios }}</div>
+      <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3">Ver Prontuários</a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-4 col-sm-6">
+    <div class="dashboard-card bg-gradient-info text-center h-100">
+      <i class="bi bi-file-medical mb-2"></i>
+      <h6>Exames</h6>
+      <div class="fw-bold display-6">{{ total_exames }}</div>
+      <a href="{% url 'listar_prontuarios' %}" class="btn btn-light btn-sm mt-3">Exames</a>
+    </div>
+  </div>
+
+</div>
+
+{% endif %}
+
+<!-- ======================================================
+             TABELA — ADMIN  / MÉDICO
+====================================================== -->
 {% if is_medico_user or user.is_staff or user.is_superuser %}
 <div class="card shadow-sm mt-5 border-0 rounded-4">
-  <div class="card-header bg-primary text-white rounded-top-4 d-flex justify-content-between align-items-center">
-    <div><i class="bi bi-clipboard2-pulse me-2"></i> Consultas Agendadas</div>
-    <small class="text-white-50">Consultas para aprovação</small>
+  <div class="card-header bg-primary text-white rounded-top-4">
+    <i class="bi bi-clipboard2-pulse me-2"></i>
+    {% if is_medico_user %} Minhas Consultas {% else %} Consultas Agendadas {% endif %}
   </div>
 
   <div class="card-body">
 
     {% if consultas %}
     <div class="table-responsive">
-      <table class="table table-hover align-middle text-center">
+      <table class="table table-striped align-middle text-center">
         <thead class="table-light">
           <tr>
             <th>Paciente</th>
             <th>Médico</th>
-            <th>Convênio</th>
             <th>Data</th>
-            <th>Horário</th>
+            <th>Hora</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
         </thead>
-
         <tbody>
+
         {% for c in consultas %}
-          <tr>
-            <td class="fw-semibold">{{ c.paciente.nome }}</td>
-            <td>{{ c.medico.user.get_full_name }}</td>
+        <tr>
+          <td class="text-start">{{ c.paciente.nome }}</td>
+          <td>{{ c.medico.user.get_full_name }}</td>
+          <td>{{ c.data_hora|date:"d/m/Y" }}</td>
+          <td>{{ c.data_hora|time:"H:i" }}</td>
 
-            <!-- CONVÊNIO -->
-            <td>
-              {% if c.usa_convenio and c.convenio %}
-                <span class="badge bg-success">✔ {{ c.convenio.nome }}</span>
-              {% else %}
-                <span class="badge bg-secondary">Não</span>
-              {% endif %}
-            </td>
+          <td>
+            {% if c.status == 'agendada' %}
+              <span class="badge bg-warning text-dark">Agendada</span>
+            {% elif c.status == 'confirmada' %}
+              <span class="badge bg-success">Confirmada</span>
+            {% elif c.status == 'cancelada' %}
+              <span class="badge bg-danger">Cancelada</span>
+            {% else %}
+              <span class="badge bg-secondary">Realizada</span>
+            {% endif %}
+          </td>
 
-            <td>{{ c.data_hora|date:"d/m/Y" }}</td>
-            <td>{{ c.data_hora|time:"H:i" }}</td>
+          <td>
+            <div class="d-flex justify-content-center gap-2">
 
-            <td>
               {% if c.status == 'agendada' %}
-                <span class="badge bg-warning text-dark">Agendada</span>
-              {% elif c.status == 'confirmada' %}
-                <span class="badge bg-success">Confirmada</span>
-              {% elif c.status == 'cancelada' %}
-                <span class="badge bg-danger">Cancelada</span>
-              {% else %}
-                <span class="badge bg-secondary">Indefinido</span>
-              {% endif %}
-            </td>
-
-            <td>
-              <div class="d-flex justify-content-center gap-2">
-
                 {% if is_medico_user and c.medico.user == user %}
-                  
-                  {% if c.status == 'agendada' %}
-                    <!-- Aprovar -->
-                    <form method="post" action="{% url 'confirmar_consulta' c.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-check2"></i>
-                      </button>
+                    <form method="post" action="{% url 'confirmar_consulta' c.id %}">{% csrf_token %}
+                      <button class="btn btn-sm btn-outline-success"><i class="bi bi-check2"></i></button>
                     </form>
 
-                    <!-- Cancelar -->
-                    <form method="post" action="{% url 'cancelar_consulta' c.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-x-circle"></i>
-                      </button>
+                    <form method="post" action="{% url 'cancelar_consulta' c.id %}">{% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i></button>
                     </form>
-
-                  {% elif c.status == 'confirmada' %}
-                    <!-- PRONTUÁRIO -->
-                    <a href="{% url 'listar_prontuarios' %}?paciente={{ c.paciente.id }}"
-                       class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-journal-medical me-1"></i> Prontuário
-                    </a>
-                  {% endif %}
 
                 {% elif user.is_staff or user.is_superuser %}
-                  
-                  {% if c.status == 'agendada' %}
-                    <form method="post" action="{% url 'confirmar_consulta' c.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-check2"></i>
-                      </button>
+                    <form method="post" action="{% url 'confirmar_consulta' c.id %}">{% csrf_token %}
+                      <button class="btn btn-sm btn-outline-success"><i class="bi bi-check2"></i></button>
                     </form>
 
-                    <form method="post" action="{% url 'cancelar_consulta' c.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-x-circle"></i>
-                      </button>
+                    <form method="post" action="{% url 'cancelar_consulta' c.id %}">{% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i></button>
                     </form>
-
-                  {% elif c.status == 'confirmada' %}
-                    <a href="{% url 'listar_prontuarios' %}?paciente={{ c.paciente.id }}"
-                       class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-journal-medical me-1"></i> Prontuário
-                    </a>
-                  {% endif %}
-                
-                {% else %}
-                  <span class="text-muted small">Sem permissão</span>
                 {% endif %}
+              {% endif %}
 
-              </div>
-            </td>
+              {% if c.status == 'confirmada' %}
+                {% if c.paciente.prontuarios.all %}
+                  <a href="{% url 'prontuario_detalhe' c.paciente.prontuarios.all.0.pk %}"
+                     class="btn btn-sm btn-outline-primary">Prontuário</a>
+                {% else %}
+                  <a href="{% url 'criar_prontuario' c.paciente.id %}"
+                     class="btn btn-sm btn-outline-primary">Criar</a>
+                {% endif %}
+              {% endif %}
 
-          </tr>
+            </div>
+          </td>
+        </tr>
         {% endfor %}
-        </tbody>
 
+        </tbody>
       </table>
     </div>
 
     {% else %}
-    <div class="text-center text-muted py-4">
-      <i class="bi bi-calendar2-x display-5 d-block mb-3"></i>
-      <h5>Nenhuma consulta encontrada.</h5>
-    </div>
+      <p class="text-center text-muted py-3">Nenhuma consulta encontrada.</p>
     {% endif %}
 
   </div>
 </div>
 {% endif %}
 
-
-
-
-
-<!-- GRUPOS (Pendentes / Confirmadas / Canceladas)-->
-{% if user.is_staff or user.is_superuser %}
+<!-- ======================================================
+=  CARDS (pendentes/confirmadas/canceladas)
+====================================================== -->
+{% if is_medico_user or user.is_staff or user.is_superuser %}
 <div class="row mt-5 g-4">
 
   <!-- PENDENTES -->
   <div class="col-md-4">
-    <div class="card border-0 shadow-sm rounded-4 h-100">
+    <div class="card shadow-sm h-100">
       <div class="card-header bg-warning text-dark fw-semibold">Pendentes</div>
       <div class="card-body">
-
         {% if consultas_pendentes %}
           <ul class="list-group list-group-flush">
             {% for c in consultas_pendentes %}
-              <li class="list-group-item d-flex justify-content-between">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                   <strong>{{ c.paciente.nome }}</strong><br>
                   <small class="text-muted">
                     {{ c.medico.user.get_full_name }} — {{ c.data_hora|date:"d/m/Y H:i" }}
-                    {% if c.usa_convenio %}
-                      <br><span class="text-success">Convênio: {{ c.convenio.nome }}</span>
-                    {% endif %}
                   </small>
                 </div>
-                <div>
-                  <form method="post" class="d-inline" action="{% url 'confirmar_consulta' c.id %}">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button>
+
+                <div class="d-flex gap-1">
+                  <form method="post" action="{% url 'confirmar_consulta' c.id %}">{% csrf_token %}
+                    <button class="btn btn-sm btn-outline-success">
+                      <i class="bi bi-check2"></i>
+                    </button>
                   </form>
 
-                  <form method="post" class="d-inline" action="{% url 'cancelar_consulta' c.id %}">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                  <form method="post" action="{% url 'cancelar_consulta' c.id %}">{% csrf_token %}
+                    <button class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-x"></i>
+                    </button>
                   </form>
                 </div>
+
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted small">Nenhuma consulta pendente.</p>
+          <p class="text-muted">Nenhuma pendente.</p>
         {% endif %}
-
       </div>
     </div>
   </div>
 
   <!-- CONFIRMADAS -->
   <div class="col-md-4">
-    <div class="card border-0 shadow-sm rounded-4 h-100">
+    <div class="card shadow-sm h-100">
       <div class="card-header bg-success text-white fw-semibold">Confirmadas</div>
       <div class="card-body">
-
         {% if consultas_confirmadas %}
           <ul class="list-group list-group-flush">
             {% for c in consultas_confirmadas %}
@@ -298,27 +315,22 @@
                 <strong>{{ c.paciente.nome }}</strong><br>
                 <small class="text-muted">
                   {{ c.medico.user.get_full_name }} — {{ c.data_hora|date:"d/m/Y H:i" }}
-                  {% if c.usa_convenio %}
-                    <br><span class="text-success">Convênio: {{ c.convenio.nome }}</span>
-                  {% endif %}
                 </small>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted small">Nenhuma consulta confirmada.</p>
+          <p class="text-muted">Nenhuma confirmada.</p>
         {% endif %}
-
       </div>
     </div>
   </div>
 
   <!-- CANCELADAS -->
   <div class="col-md-4">
-    <div class="card border-0 shadow-sm rounded-4 h-100">
+    <div class="card shadow-sm h-100">
       <div class="card-header bg-danger text-white fw-semibold">Canceladas</div>
       <div class="card-body">
-
         {% if consultas_canceladas %}
           <ul class="list-group list-group-flush">
             {% for c in consultas_canceladas %}
@@ -326,17 +338,13 @@
                 <strong>{{ c.paciente.nome }}</strong><br>
                 <small class="text-muted">
                   {{ c.medico.user.get_full_name }} — {{ c.data_hora|date:"d/m/Y H:i" }}
-                  {% if c.usa_convenio %}
-                    <br><span class="text-success">Convênio: {{ c.convenio.nome }}</span>
-                  {% endif %}
                 </small>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted small">Nenhuma consulta cancelada.</p>
+          <p class="text-muted">Nenhuma cancelada.</p>
         {% endif %}
-
       </div>
     </div>
   </div>
@@ -345,42 +353,12 @@
 {% endif %}
 
 
-
-
-
-
-<!-- NOTIFICAÇÕES-->
-{% if notificacoes %}
-<div class="card shadow-sm mt-5 border-0 rounded-4">
-  <div class="card-header bg-primary text-white fw-semibold">
-    <i class="bi bi-bell me-2"></i> Últimas Notificações
-  </div>
-
-  <ul class="list-group list-group-flush">
-    {% for n in notificacoes %}
-      <li class="list-group-item d-flex justify-content-between {% if not n.lida %}fw-bold bg-light{% endif %}">
-        <div>
-          <div><i class="bi bi-dot text-primary"></i> {{ n.titulo }}</div>
-          <div class="text-muted small">{{ n.mensagem }}</div>
-        </div>
-        <small class="text-secondary">{{ n.criado_em|date:"d/m/Y H:i" }}</small>
-      </li>
-    {% endfor %}
-  </ul>
-</div>
-{% endif %}
-
-
-
-
 <style>
-.pulse-card {
-  animation: pulse 2.5s infinite;
-}
+.pulse-card { animation: pulse 2.5s infinite; }
 @keyframes pulse {
-  0% { box-shadow:0 0 0 0 rgba(13,110,253,.25); }
-  70% { box-shadow:0 0 0 15px rgba(13,110,253,0); }
-  100% { box-shadow:0 0 0 0 rgba(13,110,253,0); }
+  0% { box-shadow: 0 0 0 0 rgba(255,255,255,.3); }
+  70% { box-shadow: 0 0 0 18px rgba(255,255,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
 }
 </style>
 

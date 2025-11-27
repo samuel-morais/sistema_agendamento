@@ -2,13 +2,15 @@ from django.contrib.auth.models import User, Group, Permission
 from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
-from .models import Consulta, Paciente, Medico, Especialidade, Prontuario, Exame
+from .models import Paciente
 
 
-#CRIAÇÃO AUTOMÁTICA DE GRUPOS E USUÁRIOS PADRÃO
+# ===============================================================
+# GRUPOS E USUÁRIOS PADRÃO (AUTOMÁTICO APÓS MIGRAÇÕES)
+# ===============================================================
+
 @receiver(post_migrate)
 def criar_usuarios_e_grupos_padrao(sender, **kwargs):
-    # Criar grupos com permissões
     grupos = {
         'Secretaria': {
             'descricao': 'Acesso completo ao sistema',
@@ -20,13 +22,14 @@ def criar_usuarios_e_grupos_padrao(sender, **kwargs):
         }
     }
 
+    # Criar grupos
     for nome, info in grupos.items():
         grupo, criado = Group.objects.get_or_create(name=nome)
         if info['permissoes']:
             grupo.permissions.set(info['permissoes'])
         grupo.save()
 
-    # Usuário Secretária padrão
+    # Usuário SECRETARIA padrão
     if not User.objects.filter(username='secretaria').exists():
         secretaria = User.objects.create_user(
             username='secretaria',
@@ -41,7 +44,7 @@ def criar_usuarios_e_grupos_padrao(sender, **kwargs):
         secretaria.groups.add(grupo_secretaria)
         print("✅ Usuário Secretária criado: secretaria / Senha1234")
 
-    # Usuário Médico padrão
+    # Usuário MÉDICO padrão
     if not User.objects.filter(username='medico').exists():
         medico_user = User.objects.create_user(
             username='medico',
@@ -51,23 +54,28 @@ def criar_usuarios_e_grupos_padrao(sender, **kwargs):
         )
         medico_user.is_staff = False
         medico_user.save()
+
         grupo_medico = Group.objects.get(name='Medico')
         medico_user.groups.add(grupo_medico)
+
         print("✅ Usuário Médico criado: medico / Senha1234")
 
 
-
-# CRIAÇÃO AUTOMÁTICA DE PACIENTE PARA NOVOS USUÁRIOS
+# ===============================================================
+# CRIAÇÃO AUTOMÁTICA DE PACIENTE PARA USUÁRIOS NOVOS
+# ===============================================================
 
 @receiver(post_save, sender=User)
 def criar_paciente_para_usuario(sender, instance, created, **kwargs):
-    #Paciente vinculado automaticamente ao ser cadastrado
-    if created:
-        # Evita duplicação — cria somente se não existir paciente vinculado
-        if not hasattr(instance, 'paciente'):
-            Paciente.objects.create(
-                usuario=instance,
-                nome=instance.get_full_name() or instance.username,
-                email=instance.email
-            )
-            print(f"✅ Paciente criado automaticamente para o usuário: {instance.username}")
+
+    if not created:
+        return
+
+    # Evitar duplicação — verificar o related_name correto
+    if not hasattr(instance, "perfil_paciente"):
+        Paciente.objects.create(
+            usuario=instance,
+            nome=instance.get_full_name() or instance.username,
+            email=instance.email
+        )
+        print(f"✅ Paciente criado automaticamente para o usuário: {instance.username}")

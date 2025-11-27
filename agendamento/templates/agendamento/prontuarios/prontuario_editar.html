@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% block title %}Editar Prontuário #{{ prontuario.pk }}{% endblock %}
+
+{% block content %}
+
+<style>
+  body { background:#eef1f7; }
+
+  .card-clean {
+    border-radius: 18px;
+    border: none;
+    background: #fff;
+    padding: 32px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.06);
+    margin-bottom: 28px;
+  }
+
+  /* Layout 1 - cabeçalho moderno */
+  .profile-header {
+      display: flex;
+      gap: 22px;
+      padding: 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4e73df 0%, #1d4ed8 100%);
+      color: #fff;
+      align-items: center;
+      margin-bottom: 28px;
+      box-shadow: 0 6px 20px rgba(30,58,138,0.25);
+  }
+
+  .patient-photo {
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .patient-badge {
+    width: 95px;
+    height: 95px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2f3b52;
+    margin-bottom: 14px;
+    border-left: 4px solid #0d6efd;
+    padding-left: 12px;
+  }
+
+  textarea,
+  input[type="text"],
+  input[type="file"] {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #ccd3e0;
+    padding: 12px;
+  }
+
+  .vital-box {
+    background: #f8faff;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #d8def0;
+    margin-bottom: 16px;
+  }
+
+  .history-item {
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: #f8faff;
+    border-left: 4px solid #0d6efd;
+    margin-bottom: 12px;
+  }
+
+  .file-box {
+    padding: 15px;
+    background: #f4f7ff;
+    border-radius: 14px;
+    border:1px solid #d8def0;
+    margin-bottom: 12px;
+  }
+</style>
+
+<div class="container my-5" style="max-width: 980px;">
+
+  <!-- CABEÇALHO DO PACIENTE -->
+  <div class="card-clean mb-4">
+    {% include 'agendamento/componentes/paciente_header.html' with paciente=paciente %}
+  </div>
+
+  <!-- FORMULÁRIO DE EDIÇÃO -->
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#aba-resumo">📝 Resumo</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-anexos">📎 Documentos</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-exames">🧪 Exames</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-consultas">📅 Consultas</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ABA RESUMO -->
+      <div class="tab-pane fade show active" id="aba-resumo">
+        <div class="card-clean">
+
+          <h4 class="section-title">Resumo do Atendimento</h4>
+
+          <label class="fw-bold">Descrição Geral</label>
+          <textarea name="descricao" class="form-control">{{ prontuario.descricao }}</textarea>
+
+          <label class="fw-bold mt-3">Queixa Principal</label>
+          <textarea name="queixa" class="form-control">{{ prontuario.queixa }}</textarea>
+
+          <label class="fw-bold mt-3">Diagnóstico</label>
+          <textarea name="diagnostico" class="form-control">{{ prontuario.diagnostico }}</textarea>
+
+          <label class="fw-bold mt-3">CID</label>
+          <input type="text" name="cid" class="form-control" value="{{ prontuario.cid }}">
+
+          <label class="fw-bold mt-3">Medicação Prescrita</label>
+          <textarea name="medicacao" class="form-control">{{ prontuario.medicacao }}</textarea>
+
+          <h4 class="section-title mt-4">Sinais Vitais</h4>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="vital-box">
+                <label class="fw-bold">Temperatura</label>
+                <input type="text" name="temperatura" class="form-control" value="{{ prontuario.temperatura }}">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="vital-box">
+                <label class="fw-bold">Pressão Arterial</label>
+                <input type="text" name="pressao" class="form-control" value="{{ prontuario.pressao }}">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="vital-box">
+                <label class="fw-bold">Saturação</label>
+                <input type="text" name="saturacao" class="form-control" value="{{ prontuario.saturacao }}">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="vital-box">
+                <label class="fw-bold">Frequência Cardíaca</label>
+                <input type="text" name="frequencia_cardiaca" class="form-control" value="{{ prontuario.frequencia_cardiaca }}">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="vital-box">
+                <label class="fw-bold">Frequência Respiratória</label>
+                <input type="text" name="frequencia_respiratoria" class="form-control" value="{{ prontuario.frequencia_respiratoria }}">
+              </div>
+            </div>
+          </div>
+
+          <h4 class="section-title mt-4">Exame Físico</h4>
+          <textarea name="exame_fisico" class="form-control">{{ prontuario.exame_fisico }}</textarea>
+
+          <h4 class="section-title mt-4">Conduta / Plano Terapêutico</h4>
+          <textarea name="conduta" class="form-control">{{ prontuario.conduta }}</textarea>
+
+          <h4 class="section-title mt-4">Evolução</h4>
+          <textarea name="evolucao" class="form-control">{{ prontuario.evolucao }}</textarea>
+
+        </div>
+      </div>
+
+      <!-- ABA DOCUMENTOS -->
+      <div class="tab-pane fade" id="aba-anexos">
+        <div class="card-clean">
+
+          <h4 class="section-title">Documento do Prontuário</h4>
+
+          {% if prontuario.anexo %}
+            <div class="file-box mb-3 d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ prontuario.anexo.name }}</strong><br>
+                <small class="text-muted">Arquivo atual</small>
+              </div>
+
+              <a href="{{ prontuario.anexo.url }}" class="btn btn-primary btn-sm" target="_blank">
+                Abrir
+              </a>
+            </div>
+          {% else %}
+            <p class="text-muted">Nenhum documento anexado.</p>
+          {% endif %}
+
+          <hr>
+
+          <h4 class="section-title">Novo Documento</h4>
+          <input type="file" name="anexo" class="form-control mt-2">
+
+        </div>
+      </div>
+
+      <!-- ABA EXAMES -->
+      <div class="tab-pane fade" id="aba-exames">
+        <div class="card-clean">
+
+          <h4 class="section-title">Exames</h4>
+
+          {% if exames %}
+            {% for e in exames %}
+              <div class="history-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ e.nome }}</strong><br>
+                  <small class="text-muted">{{ e.criado_em|date:"d/m/Y H:i" }}</small>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <a href="{{ e.arquivo.url }}" target="_blank" class="btn btn-outline-primary btn-sm">Abrir</a>
+
+                  <a href="{% url 'excluir_exame' e.pk %}"
+                     class="btn btn-danger btn-sm"
+                     onclick="return confirm('Excluir este exame?')">
+                    Excluir
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">Nenhum exame anexado.</p>
+          {% endif %}
+
+          <hr>
+
+          <h4 class="section-title">Adicionar Exame</h4>
+
+          <input type="file" name="novo_exame" class="form-control mt-2">
+          <input type="text" name="nome_exame" placeholder="Nome do exame" class="form-control mt-2">
+
+        </div>
+      </div>
+
+      <!-- ABA CONSULTAS -->
+      <div class="tab-pane fade" id="aba-consultas">
+        <div class="card-clean">
+
+          <h4 class="section-title">Histórico de Consultas</h4>
+
+          {% if consultas %}
+            {% for c in consultas %}
+              <div class="history-item">
+                <strong>{{ c.data_hora|date:"d/m/Y H:i" }}</strong><br>
+                <small>{{ c.medico.user.get_full_name }}</small><br>
+                <span class="badge bg-primary">{{ c.status }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">Nenhuma consulta registrada.</p>
+          {% endif %}
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTÃO SALVAR -->
+    <div class="text-end mb-5">
+      <button class="btn btn-success px-4" type="submit">
+        <i class="bi bi-check2-circle"></i> Salvar Alterações
+      </button>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

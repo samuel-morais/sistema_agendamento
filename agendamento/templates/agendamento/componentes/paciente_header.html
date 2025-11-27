@@ -1,0 +1,64 @@
+{% comment %} COMPONENTE DE CABEÇALHO DO PACIENTE {% endcomment %}
+
+<div class="profile-header">
+
+  {% if paciente.foto %}
+    <img src="{{ paciente.foto.url }}" class="profile-photo">
+  {% else %}
+    <div class="profile-badge">
+      {{ paciente.nome|slice:":1"|upper }}
+    </div>
+  {% endif %}
+
+  <div>
+    <h3 class="fw-bold mb-1">{{ paciente.nome }}</h3>
+
+    {% if paciente.email %}
+      <div><i class="bi bi-envelope me-2"></i> {{ paciente.email }}</div>
+    {% endif %}
+
+    <div class="d-flex flex-wrap gap-2 mt-2">
+
+      {% if paciente.cpf %}
+      <span class="badge bg-success">
+        <i class="bi bi-fingerprint me-1"></i> {{ paciente.cpf }}
+      </span>
+      {% endif %}
+
+      {% if paciente.telefone %}
+      <span class="badge bg-primary">
+        <i class="bi bi-telephone me-1"></i> {{ paciente.telefone }}
+      </span>
+      {% endif %}
+
+      {% if paciente.data_nascimento %}
+      <span class="badge bg-secondary">
+        <i class="bi bi-calendar-event me-1"></i>
+        {{ paciente.data_nascimento|date:"d/m/Y" }}
+      </span>
+      {% endif %}
+
+      {% if paciente.rg %}
+      <span class="badge bg-dark">
+        RG: {{ paciente.rg }}
+      </span>
+      {% endif %}
+
+      {% if paciente.endereco %}
+      <span class="badge bg-info text-dark">
+        <i class="bi bi-geo-alt"></i> {{ paciente.endereco }}
+      </span>
+      {% endif %}
+
+      {% if paciente.convenio %}
+      <span class="badge bg-warning text-dark">
+        <i class="bi bi-hospital"></i> {{ paciente.convenio.nome }}
+      </span>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+<hr class="my-4">

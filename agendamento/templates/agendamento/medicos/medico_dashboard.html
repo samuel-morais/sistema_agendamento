@@ -2,51 +2,77 @@
 {% block title %}Painel do Médico{% endblock %}
 
 {% block content %}
+
 <div class="container my-5">
+
+  <!-- Cabeçalho -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold text-primary">
-      <i class="bi bi-stethoscope me-2"></i>Painel do Médico
+      <i class="bi bi-stethoscope me-2"></i> Painel do Médico
     </h2>
-    <a href="{% url 'listar_consultas' %}" class="btn btn-outline-primary fw-semibold shadow-sm">
-      <i class="bi bi-calendar-week me-1"></i> Minhas Consultas
-    </a>
+
+    <span class="badge bg-primary px-3 py-2 fs-6">
+      MÉDICO {{ user.get_full_name }}
+    </span>
   </div>
 
-  <!-- Notificações -->
+
+  <!-- ========================================================= -->
+  <!--     NOTIFICAÇÕES RECENTES DO MÉDICO                      -->
+  <!-- ========================================================= -->
   <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-header bg-primary text-white rounded-top-4">
-      <h5 class="mb-0 fw-semibold"><i class="bi bi-bell-fill me-2"></i>Notificações Recentes</h5>
+      <h5 class="mb-0 fw-semibold">
+        <i class="bi bi-bell-fill me-2"></i> Notificações Recentes
+      </h5>
     </div>
+
     <div class="card-body">
+
       {% if notificacoes %}
         {% for n in notificacoes %}
-        <div class="alert alert-light border-start border-3 {% if not n.lida %}border-primary{% else %}border-secondary{% endif %} d-flex justify-content-between align-items-center py-2">
-          <div>
-            <strong>{{ n.titulo }}</strong><br>
-            <small class="text-muted">{{ n.mensagem }}</small>
+          <div class="alert alert-light border-start border-3 
+               {% if not n.lida %}border-primary{% else %}border-secondary{% endif %}
+               d-flex justify-content-between align-items-center py-2">
+
+            <div>
+              <strong>{{ n.titulo }}</strong><br>
+              <small class="text-muted">{{ n.mensagem }}</small><br>
+              <small class="text-muted">{{ n.criado_em|date:"d/m/Y H:i" }}</small>
+            </div>
+
+            {% if n.link %}
+              <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">Ver</a>
+            {% endif %}
           </div>
-          {% if n.link %}
-          <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">Ver</a>
-          {% endif %}
-        </div>
         {% endfor %}
       {% else %}
-        <p class="text-muted mb-0">Sem novas notificações no momento.</p>
+        <p class="text-muted mb-0">Nenhuma notificação no momento.</p>
       {% endif %}
+
     </div>
   </div>
 
-  <!-- Consultas futuras -->
+
+
+
+  <!-- ========================================================= -->
+  <!--     PRÓXIMAS CONSULTAS DO MÉDICO                         -->
+  <!-- ========================================================= -->
   <div class="card border-0 shadow-sm rounded-4">
     <div class="card-header bg-success text-white rounded-top-4">
-      <h5 class="mb-0 fw-semibold"><i class="bi bi-calendar-heart me-2"></i>Próximas Consultas</h5>
+      <h5 class="mb-0 fw-semibold">
+        <i class="bi bi-calendar-heart me-2"></i> Próximas Consultas
+      </h5>
     </div>
+
     <div class="card-body">
+
       {% if proximas %}
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
-              <tr>
+              <tr class="text-center">
                 <th>Data</th>
                 <th>Hora</th>
                 <th>Paciente</th>
@@ -55,56 +81,88 @@
                 <th>Ações</th>
               </tr>
             </thead>
+
             <tbody>
               {% for consulta in proximas %}
-              <tr>
+              <tr class="text-center">
+
                 <td>{{ consulta.data_hora|date:"d/m/Y" }}</td>
-                <td>{{ consulta.data_hora|date:"H:i" }}</td>
-                <td>{{ consulta.paciente.nome }}</td>
+                <td>{{ consulta.data_hora|time:"H:i" }}</td>
+
+                <td class="fw-semibold">
+                  {{ consulta.paciente.nome }}
+                </td>
+
                 <td>
-                  <span class="badge 
-                    {% if consulta.status == 'agendada' %}bg-warning text-dark
-                    {% elif consulta.status == 'realizada' %}bg-success
-                    {% elif consulta.status == 'cancelada' %}bg-danger{% endif %}">
+                  <span class="badge
+                    {% if consulta.status == 'agendada' %} bg-warning text-dark
+                    {% elif consulta.status == 'confirmada' %} bg-success
+                    {% elif consulta.status == 'cancelada' %} bg-danger
+                    {% else %} bg-secondary {% endif %}">
                     {{ consulta.get_status_display }}
                   </span>
                 </td>
+
                 <td>{{ consulta.duracao_minutos }} min</td>
+
                 <td>
-                  <a href="{% url 'editar_consulta' consulta.id %}" class="btn btn-sm btn-outline-primary me-1">
-                    <i class="bi bi-pencil-square"></i>
-                  </a>
-                  <a href="{% url 'cancelar_consulta' consulta.id %}" class="btn btn-sm btn-outline-danger">
-                    <i class="bi bi-x-circle"></i>
-                  </a>
+                  <div class="d-flex justify-content-center gap-2">
+
+                    <!-- Editar consulta -->
+                    <a href="{% url 'editar_consulta' consulta.id %}"
+                       class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-pencil-square"></i>
+                    </a>
+
+                    <!-- Cancelar consulta -->
+                    <a href="{% url 'cancelar_consulta' consulta.id %}"
+                       class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-x-circle"></i>
+                    </a>
+
+                  </div>
                 </td>
+
               </tr>
               {% endfor %}
             </tbody>
+
           </table>
         </div>
+
       {% else %}
-        <p class="text-muted mb-0">Não há consultas agendadas.</p>
+        <p class="text-muted">Não há consultas futuras para você.</p>
       {% endif %}
+
     </div>
   </div>
+
 </div>
 
+
+
+<!-- ========================================================= -->
+<!--                      ESTILO DO PAINEL                     -->
+<!-- ========================================================= -->
 <style>
 .card {
   border-radius: 1rem;
   transition: transform .2s ease, box-shadow .2s ease;
 }
+
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
 }
+
+.alert {
+  border-radius: .75rem;
+}
+
 .badge {
   font-size: 0.85rem;
   padding: 0.5em 0.75em;
 }
-.alert {
-  border-radius: .75rem;
-}
 </style>
+
 {% endblock %}

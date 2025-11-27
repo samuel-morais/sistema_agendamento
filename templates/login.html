@@ -4,6 +4,7 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
@@ -52,6 +53,7 @@
     60% { transform: translateY(-5px); }
   }
 
+  /* Inputs */
   .input-group.valid { border: 2px solid #28a745; }
   .input-group.invalid { border: 2px solid #dc3545; }
 
@@ -69,6 +71,7 @@
     text-align: left;
   }
 
+  /* Botão */
   .btn-primary {
     background: #4e54c8;
     border: none;
@@ -91,9 +94,12 @@
     cursor: pointer;
     color: #4e54c8;
   }
-
 </style>
 
+
+<!-- =====================================================
+     LOGIN
+====================================================== -->
 <div class="login-page">
   <div class="login-card">
 
@@ -103,12 +109,14 @@
 
     <h3>🔐 Acessar o Sistema</h3>
 
+    <!-- Mensagens Django -->
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %}
     {% endif %}
 
+    <!-- Formulário Login -->
     <form method="post" id="loginForm" novalidate>
       {% csrf_token %}
 
@@ -117,7 +125,8 @@
         <label for="id_username" class="form-label">Usuário</label>
         <div class="input-group" id="group-username">
           <span class="input-group-text">👤</span>
-          <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+          <input type="text" name="username" id="id_username"
+                 class="form-control" required autofocus>
         </div>
         <div id="username-msg"></div>
       </div>
@@ -127,87 +136,99 @@
         <label for="id_password" class="form-label">Senha</label>
         <div class="input-group" id="group-password">
           <span class="input-group-text">🔑</span>
-          <input type="password" name="password" id="id_password" class="form-control" required>
+          <input type="password" name="password" id="id_password"
+                 class="form-control" required>
           <span class="input-group-text show-password" id="togglePass">👁</span>
         </div>
         <div id="password-msg"></div>
       </div>
 
+      <!-- Botão -->
       <button type="submit" class="btn btn-primary w-100" id="btnLogin">
         <span id="btnText">Entrar</span>
         <span id="btnSpinner" class="spinner-border spinner-border-sm d-none"></span>
       </button>
 
       <p class="text-center mt-3">
-        <a href="{% url 'cadastrar_usuario' %}" class="text-decoration-none">Criar uma conta</a>
+        <a href="{% url 'cadastrar_usuario' %}" class="text-decoration-none">
+          Criar uma conta
+        </a>
       </p>
-
     </form>
 
-    <p class="text-muted small mt-3 mb-0">© {{ now|date:"Y" }} Sistema de Agendamento</p>
+    <p class="text-muted small mt-3 mb-0">
+      © {{ now|date:"Y" }} Sistema de Agendamento
+    </p>
+
   </div>
 </div>
 
+
+<!-- =====================================================
+     SCRIPTS LOGIN
+====================================================== -->
 <script>
-/* Mostrar / Ocultar Senha */
-document.getElementById("togglePass").addEventListener("click", function () {
-  const field = document.getElementById("id_password");
-  field.type = field.type === "password" ? "text" : "password";
-});
 
-/* Validação Username (AJAX) */
-document.getElementById("id_username").addEventListener("blur", function () {
-  const user = this.value.trim();
-  const group = document.getElementById("group-username");
-  const msg = document.getElementById("username-msg");
+  // Mostrar / ocultar senha
+  document.getElementById("togglePass").addEventListener("click", function () {
+    const field = document.getElementById("id_password");
+    field.type = field.type === "password" ? "text" : "password";
+  });
 
-  if (!user) {
-    group.classList.add("invalid");
-    msg.innerHTML = `<div class="error-msg">Informe o usuário.</div>`;
-    return;
-  }
+  // Validação AJAX — username
+  document.getElementById("id_username").addEventListener("blur", function () {
+    const user = this.value.trim();
+    const group = document.getElementById("group-username");
+    const msg = document.getElementById("username-msg");
 
-  fetch("/validar/username/?u=" + user)
-    .then(r => r.json())
-    .then(data => {
-      if (!data.exists) {
-        group.classList.add("invalid");
-        group.classList.remove("valid");
-        msg.innerHTML = `<div class="error-msg">Usuário não encontrado.</div>`;
-      } else {
-        group.classList.remove("invalid");
-        group.classList.add("valid");
-        msg.innerHTML = `<div class="success-msg">Usuário encontrado.</div>`;
-      }
-    });
-});
+    if (!user) {
+      group.classList.add("invalid");
+      msg.innerHTML = `<div class="error-msg">Informe o usuário.</div>`;
+      return;
+    }
 
-/* Validação simples de senha */
-document.getElementById("id_password").addEventListener("input", function () {
-  const val = this.value.trim();
-  const group = document.getElementById("group-password");
-  const msg = document.getElementById("password-msg");
+    fetch("/validar/username/?u=" + user)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.exists) {
+          group.classList.add("invalid");
+          group.classList.remove("valid");
+          msg.innerHTML = `<div class="error-msg">Usuário não encontrado.</div>`;
+        } else {
+          group.classList.remove("invalid");
+          group.classList.add("valid");
+          msg.innerHTML = `<div class="success-msg">Usuário encontrado.</div>`;
+        }
+      });
+  });
 
-  if (val.length < 3) {
-    group.classList.add("invalid");
-    msg.innerHTML = `<div class="error-msg">Senha muito curta.</div>`;
-  } else {
-    group.classList.remove("invalid");
-    group.classList.add("valid");
-    msg.innerHTML = ``;
-  }
-});
+  // Validação rápida da senha
+  document.getElementById("id_password").addEventListener("input", function () {
+    const val = this.value.trim();
+    const group = document.getElementById("group-password");
+    const msg = document.getElementById("password-msg");
 
-/* Loader ao enviar form */
-document.getElementById("loginForm").addEventListener("submit", function () {
-  const btn = document.getElementById("btnLogin");
-  const text = document.getElementById("btnText");
-  const spin = document.getElementById("btnSpinner");
+    if (val.length < 3) {
+      group.classList.add("invalid");
+      msg.innerHTML = `<div class="error-msg">Senha muito curta.</div>`;
+    } else {
+      group.classList.remove("invalid");
+      group.classList.add("valid");
+      msg.innerHTML = ``;
+    }
+  });
 
-  btn.classList.add("loading");
-  text.innerHTML = "Entrando...";
-  spin.classList.remove("d-none");
-});
+  // Loader ao enviar formulário
+  document.getElementById("loginForm").addEventListener("submit", function () {
+    const btn = document.getElementById("btnLogin");
+    const text = document.getElementById("btnText");
+    const spin = document.getElementById("btnSpinner");
+
+    btn.classList.add("loading");
+    text.innerHTML = "Entrando...";
+    spin.classList.remove("d-none");
+  });
+
 </script>
 
 {% endblock %}

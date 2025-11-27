@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Anexar Exame{% endblock %}
+
+{% block content %}
+
+<style>
+    body { background:#eef1f7; }
+
+    .card-clean {
+        border-radius: 18px;
+        border: none;
+        background: #fff;
+        padding: 32px;
+        box-shadow: 0 8px 25px rgba(0,0,0,.06);
+        max-width: 650px;
+        margin: 30px auto;
+    }
+
+    .section-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #2f3b52;
+        margin-bottom: 16px;
+        border-left: 4px solid #0d6efd;
+        padding-left: 12px;
+    }
+</style>
+
+<div class="card-clean">
+
+    <h3 class="section-title">Anexar Exame ao Prontuário</h3>
+
+    <p><strong>Paciente:</strong> {{ prontuario.paciente.nome }}</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Nome do Exame</label>
+            <input type="text" name="nome" class="form-control" placeholder="Ex: Hemograma, Raio-X" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Arquivo</label>
+            <input type="file" name="arquivo" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'prontuario_detalhe' prontuario.pk %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-upload"></i> Enviar Exame
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

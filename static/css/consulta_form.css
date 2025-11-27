@@ -1,0 +1,62 @@
+.container { max-width: 1000px; }
+.card { border-radius: 1rem; border: none; }
+.form-label { color: #0a4275; font-weight: 600; }
+.form-control, .form-select { border-radius: .5rem; }
+
+/* Campo de Data Premium */
+.date-wrapper { position: relative; width: 220px; }
+.date-input {
+  width: 100%;
+  padding-left: 42px;
+  border: 2px solid #dce6f5;
+  border-radius: .6rem;
+  height: 46px;
+  font-weight: 500;
+  color: #0a4275;
+  transition: .2s ease;
+}
+.date-input.blocked-date {
+  background: #f1f5fb !important;
+  color: #9bb1cc !important;
+  cursor: not-allowed !important;
+}
+.date-icon {
+  position: absolute; top: 50%; left: 12px;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #0a4275;
+}
+
+/* Botões de Horário */
+.btn-horario {
+  background-color: #0d6efd;
+  color: white;
+  font-weight: 600;
+  padding: .6rem;
+  border-radius: .5rem;
+  border: none;
+  transition: .2s ease;
+}
+.btn-horario.active {
+  background-color: #198754 !important;
+}
+.btn-horario[disabled] {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+/* Campo inválido */
+.is-invalid {
+  border: 2px solid #dc3545 !important;
+  background: #fff5f5 !important;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.shake { animation: shake .45s ease; }

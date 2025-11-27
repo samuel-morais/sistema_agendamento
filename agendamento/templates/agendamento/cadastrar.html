@@ -2,236 +2,308 @@
 {% load static %}
 {% load widget_tweaks %}
 
-{% block title %}Cadastro{% endblock %}
+{% block title %}Criar Conta{% endblock %}
 
 {% block content %}
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
   body {
-    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    background: linear-gradient(135deg, #5a60ea, #8f94fb);
     font-family: 'Inter', sans-serif;
-    color: #333;
     min-height: 100vh;
   }
 
-  .register-page {
+  .register-wrapper {
     display: flex;
-    align-items: center;
     justify-content: center;
-    height: calc(100vh - 60px);
-    padding: 1rem;
+    padding: 40px 20px;
   }
 
   .register-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    border-radius: 1rem;
-    padding: 3rem 2rem;
-    max-width: 440px;
     width: 100%;
+    max-width: 460px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.8rem 2rem;
+    border-radius: 1.2rem;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    animation: fadeIn .5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-title {
+    font-weight: 700;
+    font-size: 1.7rem;
     text-align: center;
-    box-shadow: 0 12px 40px rgba(78, 84, 200, 0.3);
-    transition: all 0.4s ease;
-  }
-
-  .register-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 18px 50px rgba(78, 84, 200, 0.4);
-  }
-
-  .register-logo img {
-    max-width: 110px;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-    animation: bounceLogo 1.5s ease;
-  }
-
-  @keyframes bounceLogo {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
+    margin-bottom: 1.5rem;
+    color: #333;
   }
 
   .input-group.invalid {
-    border-color: #e63946 !important;
-    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.3) !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3);
+    border-radius: .5rem !important;
   }
 
   .input-group.valid {
-    border-color: #2ecc71 !important;
-    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3) !important;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.3);
+    border-radius: .5rem !important;
   }
 
   .error-msg {
-    font-size: .85rem;
-    color: #e63946;
-    text-align: left;
+    font-size: 0.85rem;
+    color: #dc3545;
     margin-top: 4px;
   }
 
   .success-msg {
-    font-size: .85rem;
-    color: #2ecc71;
-    text-align: left;
+    font-size: 0.85rem;
+    color: #198754;
     margin-top: 4px;
+  }
+
+  .btn-primary, .btn-outline-primary {
+    padding: .8rem;
+    font-size: 1.05rem;
+    border-radius: .6rem;
   }
 </style>
 
-<div class="register-page">
-  <div class="register-card animate-rise">
+<div class="register-wrapper">
+  <div class="register-card">
 
-    <div class="register-logo">
-      <img src="{% static 'images/logo.png' %}" alt="Logo do Sistema">
+    <div class="text-center mb-3">
+      <img src="{% static 'images/logo.png' %}" width="120">
     </div>
 
-    <h3>📝 Criar Nova Conta</h3>
+    <h2 class="form-title">Criar Nova Conta</h2>
 
-    <form method="post" id="registerForm" novalidate>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" id="cadastrarForm" novalidate>
       {% csrf_token %}
 
       <!-- Usuário -->
-      <div class="mb-3 text-start">
-        <label for="id_username" class="form-label">Usuário</label>
-        <div class="input-group" id="group-username">
-          <span class="input-group-text"><i class="bi bi-person"></i></span>
-          {{ form.username|add_class:"form-control" }}
-        </div>
-        <div id="username-msg"></div>
+      <label class="form-label mt-2">Usuário</label>
+      <div class="input-group" id="group-username">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        {{ form.username|add_class:"form-control" }}
       </div>
+      <div id="username-msg"></div>
+      {% if form.username.errors %}<div class="error-msg">{{ form.username.errors.0 }}</div>{% endif %}
 
       <!-- Email -->
-      <div class="mb-3 text-start">
-        <label for="id_email" class="form-label">E-mail</label>
-        <div class="input-group" id="group-email">
-          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-          {{ form.email|add_class:"form-control" }}
-        </div>
-        <div id="email-msg"></div>
+      <label class="form-label mt-3">E-mail</label>
+      <div class="input-group" id="group-email">
+        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+        {{ form.email|add_class:"form-control" }}
       </div>
+      <div id="email-msg"></div>
+      {% if form.email.errors %}<div class="error-msg">{{ form.email.errors.0 }}</div>{% endif %}
+
+      <!-- CPF -->
+      <label class="form-label mt-3">CPF</label>
+      <div class="input-group" id="group-cpf">
+        <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+        {{ form.cpf|add_class:"form-control" }}
+      </div>
+      <div id="cpf-msg"></div>
+      {% if form.cpf.errors %}<div class="error-msg">{{ form.cpf.errors.0 }}</div>{% endif %}
+
+      <!-- Telefone -->
+      <label class="form-label mt-3">Telefone</label>
+      <div class="input-group" id="group-telefone">
+        <span class="input-group-text"><i class="bi bi-phone"></i></span>
+        {{ form.telefone|add_class:"form-control" }}
+      </div>
+      <div id="telefone-msg"></div>
+      {% if form.telefone.errors %}<div class="error-msg">{{ form.telefone.errors.0 }}</div>{% endif %}
 
       <!-- Senha -->
-      <div class="mb-3 text-start">
-        <label for="id_password1" class="form-label">Senha</label>
-        <div class="input-group" id="group-pass1">
-          <span class="input-group-text"><i class="bi bi-key"></i></span>
-          {{ form.password1|add_class:"form-control" }}
-        </div>
-        <div id="pass1-msg" class="small text-muted">Mínimo 8 caracteres, 1 número e 1 letra maiúscula.</div>
+      <label class="form-label mt-3">Senha</label>
+      <div class="input-group" id="group-pass1">
+        <span class="input-group-text"><i class="bi bi-key"></i></span>
+        {{ form.password1|add_class:"form-control"|attr:"autocomplete:new-password" }}
       </div>
+      <div id="pass1-msg" class="small text-muted">Use 8+ caracteres, letra maiúscula, minúscula, número e símbolo.</div>
+      {% if form.password1.errors %}<div class="error-msg">{{ form.password1.errors.0 }}</div>{% endif %}
 
       <!-- Confirmar Senha -->
-      <div class="mb-4 text-start">
-        <label for="id_password2" class="form-label">Confirmar Senha</label>
-        <div class="input-group" id="group-pass2">
-          <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-          {{ form.password2|add_class:"form-control" }}
-        </div>
-        <div id="pass2-msg"></div>
+      <label class="form-label mt-3">Confirmar Senha</label>
+      <div class="input-group" id="group-pass2">
+        <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+        {{ form.password2|add_class:"form-control"|attr:"autocomplete:new-password" }}
       </div>
+      <div id="pass2-msg"></div>
+      {% if form.password2.errors %}<div class="error-msg">{{ form.password2.errors.0 }}</div>{% endif %}
 
-      <button type="submit" class="btn btn-primary w-100 mb-3">
+      <button class="btn btn-primary w-100 mt-4">
         <i class="bi bi-person-plus"></i> Criar Conta
       </button>
 
-      <a href="{% url 'login' %}" class="btn btn-outline-primary w-100">
+      <a href="{% url 'login' %}" class="btn btn-outline-primary w-100 mt-2">
         <i class="bi bi-box-arrow-in-right"></i> Já tenho uma conta
       </a>
     </form>
 
-    <p class="text-muted small mt-4 mb-0">
-      © {{ now|date:"Y" }} Sistema de Agendamento — Todos os direitos reservados
-    </p>
   </div>
 </div>
 
+<!-- SCRIPTS -->
 <script>
-/* Funções utilitárias */
-function setValid(group, msgBox, text="") {
+/* ---------------------------------------------
+   FEEDBACK VISUAL
+--------------------------------------------- */
+function setValid(group, msg, text="") {
   group.classList.remove("invalid");
   group.classList.add("valid");
-  msgBox.innerHTML = text ? `<div class="success-msg">${text}</div>` : "";
+  msg.innerHTML = text ? `<div class='success-msg'>${text}</div>` : "";
 }
-
-function setInvalid(group, msgBox, text) {
+function setInvalid(group, msg, text) {
   group.classList.remove("valid");
   group.classList.add("invalid");
-  msgBox.innerHTML = `<div class="error-msg">${text}</div>`;
+  msg.innerHTML = `<div class='error-msg'>${text}</div>`;
 }
 
-/* Validação AJAX: Username */
+/* ---------------------------------------------
+   MÁSCARA CPF
+--------------------------------------------- */
+function maskCPF(v) {
+  v = v.replace(/\D/g, "");
+  if (v.length <= 3) return v;
+  if (v.length <= 6) return v.replace(/(\d{3})(\d+)/, "$1.$2");
+  if (v.length <= 9) return v.replace(/(\d{3})(\d{3})(\d+)/, "$1.$2.$3");
+  return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+document.getElementById("id_cpf").addEventListener("input", function () {
+  this.value = maskCPF(this.value);
+});
+
+/* ---------------------------------------------
+   MÁSCARA TELEFONE
+--------------------------------------------- */
+function maskTel(v) {
+  v = v.replace(/\D/g, "");
+  if (v.length <= 10) return v.replace(/(\d{2})(\d{4})(\d*)/, "($1) $2-$3");
+  return v.replace(/(\d{2})(\d{5})(\d*)/, "($1) $2-$3");
+}
+document.getElementById("id_telefone").addEventListener("input", function () {
+  this.value = maskTel(this.value);
+});
+
+/* ---------------------------------------------
+   MÁSCARA EMAIL
+--------------------------------------------- */
+document.getElementById("id_email").addEventListener("input", function () {
+  this.value = this.value.replace(/\s+/g, "").replace(/[^\w@\.\-]/g, "");
+});
+
+/* ---------------------------------------------
+   MÁSCARA USERNAME
+--------------------------------------------- */
+document.getElementById("id_username").addEventListener("input", function () {
+  this.value = this.value.replace(/\s+/g, "").replace(/[^\w\.\-]/g, "");
+});
+
+/* ---------------------------------------------
+   VALIDAR USERNAME (AJAX)
+--------------------------------------------- */
 document.getElementById("id_username").addEventListener("blur", function() {
-  const username = this.value.trim();
+  const v = this.value.trim();
   const group = document.getElementById("group-username");
   const msg = document.getElementById("username-msg");
 
-  if (username.length < 3) {
-    setInvalid(group, msg, "Mínimo de 3 caracteres.");
-    return;
-  }
+  if (v.length < 3) return setInvalid(group, msg, "Mínimo 3 caracteres.");
 
-  fetch("/validar/username/?u=" + username)
+  fetch(`/validar/username/?u=${v}`)
     .then(r => r.json())
-    .then(data => {
-      if (data.exists) setInvalid(group, msg, "Este usuário já está em uso.");
-      else setValid(group, msg, "Usuário disponível!");
-    });
+    .then(data =>
+      data.exists
+        ? setInvalid(group, msg, "Usuário indisponível.")
+        : setValid(group, msg, "Usuário disponível!")
+    );
 });
 
-/* Validação AJAX: Email */
+/* ---------------------------------------------
+   VALIDAR EMAIL (AJAX)
+--------------------------------------------- */
 document.getElementById("id_email").addEventListener("blur", function() {
-  const email = this.value.trim();
+  const v = this.value.trim();
   const group = document.getElementById("group-email");
   const msg = document.getElementById("email-msg");
 
-  if (!email.includes("@") || email.length < 8) {
-    setInvalid(group, msg, "E-mail inválido.");
-    return;
-  }
+  if (!v.includes("@") || v.length < 6)
+    return setInvalid(group, msg, "E-mail inválido.");
 
-  fetch("/validar/email/?e=" + email)
+  fetch(`/validar/email/?e=${v}`)
     .then(r => r.json())
-    .then(data => {
-      if (data.exists) setInvalid(group, msg, "E-mail já cadastrado.");
-      else setValid(group, msg, "E-mail disponível!");
-    });
+    .then(data =>
+      data.exists
+        ? setInvalid(group, msg, "E-mail já cadastrado.")
+        : setValid(group, msg, "E-mail disponível!")
+    );
 });
 
-/* Validação senha forte*/
+/* ---------------------------------------------
+   VALIDAR CPF (AJAX)
+--------------------------------------------- */
+document.getElementById("id_cpf").addEventListener("blur", function() {
+  const v = this.value.trim();
+  const group = document.getElementById("group-cpf");
+  const msg = document.getElementById("cpf-msg");
+
+  fetch(`/validar/cpf/?cpf=${v}`)
+    .then(r => r.json())
+    .then(data =>
+      data.exists
+        ? setInvalid(group, msg, "CPF já cadastrado.")
+        : setValid(group, msg, "CPF válido!")
+    );
+});
+
+/* ---------------------------------------------
+   VALIDAR SENHA (FORÇA)
+--------------------------------------------- */
 document.getElementById("id_password1").addEventListener("input", function() {
-  const val = this.value;
+  const v = this.value;
   const group = document.getElementById("group-pass1");
   const msg = document.getElementById("pass1-msg");
 
-  const strong = /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/;
+  const forte = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_\-+=]).{8,}$/;
 
-  if (!strong.test(val)) {
-    setInvalid(group, msg, "Senha fraca — use 8+ caracteres, número e letra maiúscula.");
-  } else {
+  if (!forte.test(v))
+    setInvalid(group, msg, "Senha fraca — use letra maiúscula, minúscula, número e símbolo.");
+  else
     setValid(group, msg, "Senha forte!");
-  }
 });
 
-/* Confirmar senha */
+/* ---------------------------------------------
+   CONFIRMAR SENHA
+--------------------------------------------- */
 document.getElementById("id_password2").addEventListener("input", function() {
-  const pass1 = document.getElementById("id_password1").value;
-  const pass2 = this.value;
+  const p1 = document.getElementById("id_password1").value;
+  const p2 = this.value;
 
   const group = document.getElementById("group-pass2");
   const msg = document.getElementById("pass2-msg");
 
-  if (pass2 !== pass1) {
-    setInvalid(group, msg, "As senhas não coincidem.");
-  } else {
-    setValid(group, msg, "Senhas combinam!");
-  }
+  if (p1 !== p2) setInvalid(group, msg, "As senhas não coincidem.");
+  else setValid(group, msg, "Senhas iguais!");
 });
 
-/* Confirmação antes de enviar */
-document.getElementById("registerForm").addEventListener("submit", function(e) {
-  if (!confirm("Deseja criar essa conta?")) {
-    e.preventDefault();
-  }
+/* ---------------------------------------------
+   CONFIRMAR ENVIO
+--------------------------------------------- */
+document.getElementById("cadastrarForm").addEventListener("submit", function(e) {
+  if (!confirm("Deseja criar essa conta?")) e.preventDefault();
 });
 </script>
 

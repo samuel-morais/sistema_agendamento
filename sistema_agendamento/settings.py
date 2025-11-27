@@ -1,24 +1,32 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv  # Biblioteca para ler o .env
+from dotenv import load_dotenv
 
-# Caminho base do projeto
+# ===============================================================
+# BASE DO PROJETO
+# ===============================================================
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Carregar variáveis do .env
+# Carrega variáveis do .env
 load_dotenv(BASE_DIR / '.env')
 
-# ----------------------------
-# Configurações principais
-# ----------------------------
+
+# ===============================================================
+# CONFIGURAÇÕES PRINCIPAIS
+# ===============================================================
+
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'chave_default_para_dev')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-# ----------------------------
-# Aplicativos Django
-# ----------------------------
+
+# ===============================================================
+# INSTALLED_APPS
+# ===============================================================
+
 INSTALLED_APPS = [
+    # Django default apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,14 +34,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Apps do projeto
-    'agendamento',
+    # Libs externas
     'widget_tweaks',
+
+    # App principal
+    'agendamento',
 ]
 
-# ----------------------------
-# Middlewares
-# ----------------------------
+
+# ===============================================================
+# MIDDLEWARE
+# ===============================================================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -44,15 +56,22 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+# ===============================================================
+# URL PRINCIPAL
+# ===============================================================
+
 ROOT_URLCONF = 'sistema_agendamento.urls'
 
-# ----------------------------
-# Templates
-# ----------------------------
+
+# ===============================================================
+# TEMPLATES
+# ===============================================================
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],   # Pasta templates global
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -65,11 +84,18 @@ TEMPLATES = [
     },
 ]
 
+
+# ===============================================================
+# WSGI
+# ===============================================================
+
 WSGI_APPLICATION = 'sistema_agendamento.wsgi.application'
 
-# ----------------------------
-# Banco de dados PostgreSQL
-# ----------------------------
+
+# ===============================================================
+# BANCO DE DADOS — PostgreSQL
+# ===============================================================
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -81,9 +107,11 @@ DATABASES = {
     }
 }
 
-# ----------------------------
-# Validação de senhas
-# ----------------------------
+
+# ===============================================================
+# VALIDAÇÃO DE SENHAS
+# ===============================================================
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -91,17 +119,22 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ----------------------------
-# Linguagem do Sistema e Timezone
-# ----------------------------
+
+# ===============================================================
+# IDIOMA E TIMEZONE
+# ===============================================================
+
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
+
 USE_I18N = True
 USE_TZ = True
 
-# ----------------------------
-# Arquivos estáticos e mídia
-# ----------------------------
+
+# ===============================================================
+# STATIC & MEDIA FILES
+# ===============================================================
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
@@ -110,9 +143,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ----------------------------
-# Autenticação
-# ----------------------------
+
+# ===============================================================
+# AUTENTICAÇÃO
+# ===============================================================
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'pagina_inicial'
 LOGOUT_REDIRECT_URL = 'login'

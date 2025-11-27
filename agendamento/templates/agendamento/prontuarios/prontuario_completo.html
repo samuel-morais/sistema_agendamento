@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Prontuário Completo – {{ paciente.nome }}{% endblock %}
+
+{% block content %}
+
+<style>
+  body { background:#eef1f7; }
+
+  .card-clean {
+    border-radius: 18px;
+    border: none;
+    background: #fff;
+    padding: 32px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.06);
+    margin-bottom: 28px;
+  }
+
+  .profile-header {
+      display: flex;
+      gap: 22px;
+      padding: 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4e73df 0%, #1d4ed8 100%);
+      color: #fff;
+      align-items: center;
+      margin-bottom: 28px;
+      box-shadow: 0 6px 20px rgba(30,58,138,0.25);
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #2f3b52;
+    margin-bottom: 16px;
+    border-left: 4px solid #0d6efd;
+    padding-left: 12px;
+  }
+
+  .info-label {
+    font-weight: 700;
+    color: #334155;
+    margin-top: 20px;
+  }
+
+  .info-area {
+    background: #f8faff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #d8def0;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+  }
+
+  .file-box {
+    background: #f4f7ff;
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid #d8def0;
+    margin-bottom: 16px;
+  }
+</style>
+
+<div class="container my-5" style="max-width: 900px;">
+
+  <!-- BOTÃO PDF SUPERIOR -->
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'prontuario_pdf' prontuario.pk %}"
+       class="btn btn-danger shadow-sm"
+       style="font-weight:600;">
+        <i class="bi bi-filetype-pdf me-1"></i> Gerar PDF
+    </a>
+  </div>
+
+  <!-- CARD DE CABEÇALHO DO PACIENTE -->
+  <div class="card-clean">
+
+      <div class="mb-3">
+        {% include 'agendamento/componentes/paciente_header.html' with paciente=paciente %}
+      </div>
+
+      <!-- RESUMO -->
+      <h3 class="section-title">Resumo do Atendimento</h3>
+      <div class="info-area">{{ prontuario.descricao|default:"—" }}</div>
+
+      <label class="info-label">Queixa Principal:</label>
+      <div class="info-area">{{ prontuario.queixa|default:"—" }}</div>
+
+      <label class="info-label">Diagnóstico:</label>
+      <div class="info-area">{{ prontuario.diagnostico|default:"—" }}</div>
+
+      <label class="info-label">CID:</label>
+      <div class="info-area">{{ prontuario.cid|default:"—" }}</div>
+
+      <label class="info-label">Medicação Prescrita:</label>
+      <div class="info-area">{{ prontuario.medicacao|default:"—" }}</div>
+
+      <small class="text-muted">
+        Criado em {{ prontuario.criado_em|date:"d/m/Y H:i" }}<br>
+        Atualizado em {{ prontuario.atualizado_em|date:"d/m/Y H:i" }}
+      </small>
+  </div>
+
+  <!-- DOCUMENTO DO PRONTUÁRIO -->
+  <div class="card-clean">
+    <h3 class="section-title">Documento do Prontuário</h3>
+
+    {% if prontuario.anexo %}
+      <div class="file-box">
+        {% with ext=prontuario.anexo.url|lower|slice:"-4:" %}
+          {% if ext == ".pdf" %}
+            <iframe src="{{ prontuario.anexo.url }}" style="width:100%;height:450px;border:0;"></iframe>
+          {% elif ext == ".jpg" or ext == ".png" or prontuario.anexo.url|lower|slice:"-5:" == ".jpeg" %}
+            <img src="{{ prontuario.anexo.url }}" class="img-fluid rounded shadow">
+          {% else %}
+            <a href="{{ prontuario.anexo.url }}" class="btn btn-primary" target="_blank">
+              <i class="bi bi-download"></i> Baixar Arquivo
+            </a>
+          {% endif %}
+        {% endwith %}
+      </div>
+    {% else %}
+      <p class="text-muted">Nenhum documento anexado.</p>
+    {% endif %}
+  </div>
+
+  <!-- EXAMES -->
+  <div class="card-clean">
+    <h3 class="section-title">Exames Vinculados</h3>
+
+    {% if exames %}
+      {% for e in exames %}
+        <div class="file-box">
+          <strong>{{ e.nome }}</strong><br>
+          <small class="text-muted">{{ e.criado_em|date:"d/m/Y H:i" }}</small><br>
+
+          <a href="{{ e.arquivo.url }}" class="btn btn-sm btn-primary mt-2" target="_blank">
+            <i class="bi bi-download"></i> Abrir Exame
+          </a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">Nenhum exame registrado.</p>
+    {% endif %}
+  </div>
+
+  <!-- CONSULTAS -->
+  <div class="card-clean">
+    <h3 class="section-title">Histórico de Consultas</h3>
+
+    {% if consultas %}
+      {% for c in consultas %}
+        <div class="file-box">
+          <strong>{{ c.data_hora|date:"d/m/Y H:i" }}</strong><br>
+          <small class="text-muted">{{ c.medico.user.get_full_name }}</small><br>
+
+          <span class="badge 
+            {% if c.status == 'confirmada' %} bg-success
+            {% elif c.status == 'cancelada' %} bg-danger
+            {% elif c.status == 'agendada' %} bg-warning text-dark
+            {% else %} bg-secondary
+            {% endif %}
+          ">
+            {{ c.status|title }}
+          </span>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">Nenhuma consulta registrada.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+
+    @page {
+      size: A4;
+      margin: 30px;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #0d6efd;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 120px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 0;
+      color: #0d6efd;
+    }
+
+    h2 {
+      color: #0d6efd;
+      border-bottom: 1px solid #0d6efd;
+      padding-bottom: 3px;
+      margin-top: 25px;
+      font-size: 17px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    table th, table td {
+      padding: 6px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    }
+
+    .section-text {
+      margin-top: 8px;
+      line-height: 1.4rem;
+      white-space: pre-wrap;
+    }
+
+    .file-box {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      background: #f7f7f7;
+    }
+
+    .foto-paciente {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #0d6efd;
+      margin-bottom: 10px;
+    }
+
+    .foto-placeholder {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #0d6efd;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 12px;
+      left: 0;
+      text-align: center;
+      width: 100%;
+      font-size: 11px;
+      color: #666;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Font_Awesome_5_regular_file-medical-alt.svg/1024px-Font_Awesome_5_regular_file-medical-alt.svg.png">
+    <h1>PRONTUÁRIO MÉDICO COMPLETO</h1>
+  </div>
+
+  <!-- FOTO + NOME -->
+  <div style="text-align:center; margin-bottom:15px;">
+
+    {% if paciente.foto %}
+      <img src="{{ paciente.foto.url }}" class="foto-paciente">
+    {% else %}
+      <div class="foto-placeholder">
+        {{ paciente.nome|slice:":1"|upper }}
+      </div>
+    {% endif %}
+
+    <div style="font-size:16px; font-weight:bold; margin-top:5px;">
+      {{ paciente.nome }}
+    </div>
+  </div>
+
+  <!-- DADOS DO PACIENTE -->
+  <h2>Dados do Paciente</h2>
+
+  <table>
+    <tr><th>Nome</th><td>{{ paciente.nome }}</td></tr>
+    <tr><th>CPF</th><td>{{ paciente.cpf|default:"-" }}</td></tr>
+    <tr><th>RG</th><td>{{ paciente.rg|default:"-" }}</td></tr>
+    <tr><th>Email</th><td>{{ paciente.email|default:"-" }}</td></tr>
+    <tr><th>Telefone</th><td>{{ paciente.telefone|default:"-" }}</td></tr>
+    <tr><th>Data de Nascimento</th><td>{{ paciente.data_nascimento|date:"d/m/Y"|default:"-" }}</td></tr>
+    <tr><th>Endereço</th><td>{{ paciente.endereco|default:"-" }}</td></tr>
+    <tr><th>Convênio</th><td>{{ paciente.convenio.nome|default:"Particular / Não informado" }}</td></tr>
+  </table>
+
+  <!-- DADOS DO PRONTUÁRIO -->
+  <h2>Resumo do Atendimento</h2>
+  <div class="section-text">{{ prontuario.descricao|default:"—" }}</div>
+
+  <h2>Queixa Principal</h2>
+  <div class="section-text">{{ prontuario.queixa|default:"—" }}</div>
+
+  <h2>Diagnóstico</h2>
+  <div class="section-text">{{ prontuario.diagnostico|default:"—" }}</div>
+
+  <h2>CID</h2>
+  <div class="section-text">{{ prontuario.cid|default:"—" }}</div>
+
+  <h2>Medicação Prescrita</h2>
+  <div class="section-text">{{ prontuario.medicacao|default:"Nenhuma" }}</div>
+
+  <!-- EXAME FÍSICO -->
+  <h2>Exame Físico</h2>
+  <div class="section-text">{{ prontuario.exame_fisico|default:"—" }}</div>
+
+  <!-- CONDUTA -->
+  <h2>Conduta / Plano Terapêutico</h2>
+  <div class="section-text">{{ prontuario.conduta|default:"—" }}</div>
+
+  <!-- EVOLUÇÃO -->
+  <h2>Evolução</h2>
+  <div class="section-text">{{ prontuario.evolucao|default:"—" }}</div>
+
+  <!-- DOCUMENTO PRINCIPAL -->
+  <h2>Documento Anexado ao Prontuário</h2>
+
+  {% if prontuario.anexo %}
+    <div class="file-box">
+      <strong>Arquivo:</strong> {{ prontuario.anexo.name }}
+    </div>
+  {% else %}
+    <p class="section-text">Nenhum documento anexado.</p>
+  {% endif %}
+
+  <!-- EXAMES VINCULADOS -->
+  <h2>Exames Vinculados</h2>
+
+  {% if exames %}
+    {% for e in exames %}
+      <div class="file-box">
+        <strong>{{ e.nome }}</strong><br>
+
+        {% if e.arquivo %}
+          <div><strong>Arquivo:</strong> {{ e.arquivo.name }}</div>
+        {% else %}
+          <div><em>Nenhum arquivo anexado.</em></div>
+        {% endif %}
+
+        <small>Enviado em {{ e.criado_em|date:"d/m/Y H:i" }}</small>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="section-text">Nenhum exame anexado.</p>
+  {% endif %}
+
+  <!-- CONSULTAS -->
+  <h2>Histórico de Consultas</h2>
+
+  {% if consultas %}
+    <table>
+      <tr>
+        <th>Data</th>
+        <th>Médico</th>
+        <th>Status</th>
+      </tr>
+
+      {% for c in consultas %}
+        <tr>
+          <td>{{ c.data_hora|date:"d/m/Y H:i" }}</td>
+          <td>{{ c.medico.user.get_full_name }}</td>
+          <td>{{ c.status|title }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="section-text">Nenhuma consulta registrada.</p>
+  {% endif %}
+
+  <!-- ASSINATURA DO MÉDICO -->
+  <h2>Assinatura do Médico</h2>
+
+  <div class="section-text">
+    {% if prontuario.medico %}
+      <strong>{{ prontuario.medico.get_full_name }}</strong><br>
+      {% if prontuario.medico.perfil_medico.crm %}
+        CRM: {{ prontuario.medico.perfil_medico.crm }}
+      {% endif %}
+    {% else %}
+      <em>Este prontuário não tem médico vinculado.</em>
+    {% endif %}
+  </div>
+
+  <!-- QR CODE -->
+  <h2>Validação Digital</h2>
+  <img class="qr" width="130" src="https://quickchart.io/qr?text=https://seusite.com/validar/{{ prontuario.pk }}">
+
+  <!-- RODAPÉ -->
+  <div class="footer">
+    Prontuário Nº {{ prontuario.pk }} — Gerado em {{ prontuario.criado_em|date:"d/m/Y H:i" }}
+  </div>
+
+</body>
+</html>
