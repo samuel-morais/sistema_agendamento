@@ -21,7 +21,9 @@
   cursor: not-allowed !important;
 }
 .date-icon {
-  position: absolute; top: 50%; left: 12px;
+  position: absolute;
+  top: 50%;
+  left: 12px;
   transform: translateY(-50%);
   font-size: 1.2rem;
   color: #0a4275;

@@ -747,6 +747,7 @@ def get_paciente_do_usuario(user):
 @login_required
 def editar_consulta(request, pk):
     consulta = get_object_or_404(Consulta, pk=pk)
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
     # Permissão
     if not (
@@ -754,16 +755,22 @@ def editar_consulta(request, pk):
         or is_medico(request.user)
         or consulta.paciente == getattr(request.user, 'perfil_paciente', None)
     ):
-        messages.error(request, 'Você não tem permissão para editar esta consulta.')
-        return redirect('listar_consultas')
+        if is_ajax:
+            return JsonResponse({"ok": False, "errors": {"__all__": ["Sem permissão"]}}, status=403)
+        messages.error(request, "Você não tem permissão.")
+        return redirect("listar_consultas")
 
-    if request.method == 'POST':
+    # ==================================================================
+    # POST — SALVAR ALTERAÇÕES
+    # ==================================================================
+    if request.method == "POST":
         form = ConsultaForm(request.POST, instance=consulta, user=request.user)
 
         if form.is_valid():
-            data = form.cleaned_data['data']
-            hora = form.cleaned_data['hora']
-            duracao = form.cleaned_data.get('duracao_minutos') or consulta.duracao_minutos
+
+            data = form.cleaned_data["data"]
+            hora = form.cleaned_data["hora"]
+            duracao = form.cleaned_data.get("duracao_minutos") or consulta.duracao_minutos
 
             data_hora = timezone.make_aware(
                 datetime.combine(data, hora),
@@ -771,46 +778,76 @@ def editar_consulta(request, pk):
             )
 
             consulta.data_hora = data_hora
-            consulta.medico = form.cleaned_data['medico']
-            consulta.observacoes = form.cleaned_data['observacoes']
-            consulta.status = form.cleaned_data['status']
-            consulta.confirmada = form.cleaned_data['confirmada']
+            consulta.medico = form.cleaned_data["medico"]
+            consulta.observacoes = form.cleaned_data["observacoes"]
+            consulta.status = form.cleaned_data["status"]
+            consulta.confirmada = form.cleaned_data["confirmada"]
             consulta.duracao_minutos = duracao
 
-            if 'usa_convenio' in form.cleaned_data:
-                consulta.usa_convenio = form.cleaned_data['usa_convenio']
+            # convênio
+            usa_convenio = request.POST.get("usa_convenio") == "on"
+            consulta.usa_convenio = usa_convenio
 
-            if 'convenio' in form.cleaned_data:
-                consulta.convenio = form.cleaned_data['convenio']
+            convenio_id = request.POST.get("convenio")
+            consulta.convenio = Convenio.objects.filter(id=convenio_id).first() if usa_convenio else None
 
             consulta.save()
 
-            messages.success(request, 'Consulta atualizada com sucesso!')
-            return redirect('listar_consultas')
+            # AJAX RESPONSE (JS espera isso!)
+            if is_ajax:
+                return JsonResponse({
+                    "ok": True,
+                    "consulta": {
+                        "id": consulta.id,
+                        "medico": str(consulta.medico),
+                        "paciente": consulta.paciente.nome,
+                        "data": data_hora.strftime("%d/%m/%Y"),
+                        "hora": data_hora.strftime("%H:%M"),
+                        "convenio": consulta.convenio.nome if consulta.convenio else None
+                    }
+                })
 
-        messages.error(request, 'Corrija os erros do formulário.')
+            messages.success(request, "Consulta atualizada com sucesso!")
+            return redirect("listar_consultas")
 
-    else:
-        inicial = {
-            'data': consulta.data_hora.date(),
-            'hora': consulta.data_hora.time().strftime('%H:%M'),
-            'duracao_minutos': consulta.duracao_minutos,
-        }
+        # FORM INVÁLIDO → ERRO AJAX
+        if is_ajax:
+            errors = form.errors.get_json_data()
+            simplified = {campo: [e["message"] for e in msgs] for campo, msgs in errors.items()}
+            return JsonResponse({"ok": False, "errors": simplified}, status=400)
 
-        form = ConsultaForm(
-            instance=consulta,
-            initial=inicial,
-            user=request.user
-        )
+        messages.error(request, "Corrija os erros do formulário.")
+
+    # ==================================================================
+    # GET — EXIBIR FORMULÁRIO
+    # ==================================================================
+    inicial = {
+        "data": consulta.data_hora.date(),
+        "hora": consulta.data_hora.time().strftime("%H:%M"),
+        "duracao_minutos": consulta.duracao_minutos,
+    }
+
+    form = ConsultaForm(
+        instance=consulta,
+        initial=inicial,
+        user=request.user
+    )
+
+    especialidades = Especialidade.objects.all().order_by("nome")
+    convenios = Convenio.objects.filter(ativo=True).order_by("nome")
 
     context = {
-        'form': form,
-        'titulo': 'Editar Consulta',
-        'consulta': consulta
+        "form": form,
+        "titulo": "Editar Consulta",
+        "consulta": consulta,
+        "especialidades": especialidades,
+        "convenios": convenios,
     }
     context.update(context_user_flags(request))
 
-    return render(request, 'agendamento/consultas/consulta_form.html', context)
+    return render(request, "agendamento/consultas/consulta_form.html", context)
+
+
 
 
 # ===============================================================

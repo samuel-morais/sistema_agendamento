@@ -1,3 +1,4 @@
+{% load static %}
 {% comment %} COMPONENTE DE CABEÇALHO DO PACIENTE {% endcomment %}
 
 <div class="profile-header">
@@ -5,9 +6,8 @@
   {% if paciente.foto %}
     <img src="{{ paciente.foto.url }}" class="profile-photo">
   {% else %}
-    <div class="profile-badge">
-      {{ paciente.nome|slice:":1"|upper }}
-    </div>
+    <!-- Avatar padrão SEM LETRA -->
+    <img src="{% static 'images/default_user.png' %}" class="profile-photo">
   {% endif %}
 
   <div>
